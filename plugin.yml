@@ -1,0 +1,8 @@
+main: me.mrletsplay.minebay.Main
+name: MineBay
+version: 1.0
+author: MrLetsplay2003
+depend: [Vault]
+
+commands:
+  minebay:
