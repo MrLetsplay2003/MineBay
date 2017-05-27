@@ -256,12 +256,12 @@ public class AuctionRoom {
 		inv.setItem(23, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Block"));
 		
 		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Slots", "§8Current: §7"+slots));
-		inv.setItem(32, Tools.createItem(Material.STAINED_CLAY, 1, 5, "§7Buy 1 slot"));
-		inv.setItem(33, Tools.createItem(Material.STAINED_CLAY, 1, 5, "§7Sell 1 slot"));
+		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), "§7Buy 1 slot"));
+		inv.setItem(33, Tools.createItem(Tools.arrowRight(), "§7Sell 1 slot"));
 
 		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Tax", "§8Current: §7"+taxshare+"%"));
-		inv.setItem(41, Tools.createItem(Material.STAINED_CLAY, 1, 5, "§7Increase Tax"));
-		inv.setItem(42, Tools.createItem(Material.STAINED_CLAY, 1, 5, "§7Decrease Tax"));
+		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax"));
+		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax"));
 		
 		inv.setItem(45, gPane3);
 		

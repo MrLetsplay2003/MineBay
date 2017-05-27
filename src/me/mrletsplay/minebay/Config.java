@@ -1,22 +1,27 @@
 package me.mrletsplay.minebay;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
-
-	private static File ConfigFile = new File("plugins/MineBay", "Config.yml");
-	public static FileConfiguration Config = YamlConfiguration.loadConfiguration(ConfigFile); 
+	
+	public static FileConfiguration Config = Main.pl.getConfig();
 	
 	public static void save(){
 		try{
-			Config.save(ConfigFile);
+//			Config.save(ConfigFile);
+			Main.pl.saveConfig();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -27,9 +32,9 @@ public class Config {
 		Config.addDefault("minebay.mbstring", "&6Mine&bBay");
 		Config.addDefault("minebay.info.purchase.success", "%prefix% &aYou successfully bought &6%amount% %type% &afrom &6%seller% &afor &6%price% %currency%");
 		Config.addDefault("minebay.info.purchase.error", "&cError: %error%");
+		Config.addDefault("minebay.info.purchase.seller.success", "%prefix% &6%buyer% &ahas bought &6%amount% %type% &afor &6%price% %currency% &afrom you on %mbstring% &7(You get %price2% %currency%)");
+		Config.addDefault("minebay.info.purchase.room-owner.success", "%prefix% &6%buyer% &ahas bought &6%amount% %type% &afor &6%price% %currency% &ain your room on %mbstring% &7(You get %price2% %currency%)");
 		Config.addDefault("minebay.info.sell.success", "%prefix% &aSuccessfully put &6%amount% %type% &afor &6%price% %currency% &afor sale on %mbstring%");
-		Config.addDefault("minebay.info.sell.seller.success", "%prefix% &6%buyer% &ahas bought &6%amount% %type% &afor &6%price% %currency% &afrom you on %mbstring% &7(You get %price2% %currency%)");
-		Config.addDefault("minebay.info.sell.owner.success", "%prefix% &6%buyer% &ahas bought &6%amount% %type% &afor &6%price% %currency% &ain your room on %mbstring% &7(You get %price2% %currency%)");
 		Config.addDefault("minebay.info.sell.error.noitem", "%prefix% &cYou need to hold an item in your hand");
 		Config.addDefault("minebay.info.sell.error.toocheap", "%prefix% &cYou need to set a price higher than 0");
 		Config.addDefault("minebay.info.sell.error.no-slots", "%prefix% &cAll slots are already occupied");
@@ -40,10 +45,12 @@ public class Config {
 		Config.addDefault("minebay.info.newblock-applied", "%prefix% &aBlock changed to: %type%");
 		Config.addDefault("minebay.info.room-created", "%prefix% &aRoom &6\"%name%\" &acreated! &7(Properties: Tax: %taxshare%%, Slots: %slots%, Icon Material: %iconmaterial%, ID: %roomid%)");
 		Config.addDefault("minebay.info.room-create.error.too-many-rooms", "%prefix% &cYou have already reached the room limit!");
+		Config.addDefault("minebay.info.room-create.error.general", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.slot-buy.success", "%prefix% &aBought one slot for %slotprice% %currency%");
 		Config.addDefault("minebay.info.slot-buy.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.slot-buy.toomanyslots", "%prefix% &cYou already have reached the maximum amount of slots");
 		Config.addDefault("minebay.info.slot-sell.success", "%prefix% &aSold one slot for %slotprice% %currency%");
+		Config.addDefault("minebay.info.slot-sell.all-slots-occupied", "%prefix% &cAll slots are currently occupied");
 		Config.addDefault("minebay.info.slot-sell.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.slot-sell.notenoughslots", "%prefix% &cYou already have reached the minimum amount of slots");
 		Config.addDefault("minebay.info.tax.success", "%prefix% &aChanged the tax to %newtax%%");
@@ -53,7 +60,10 @@ public class Config {
 		Config.addDefault("minebay.info.sell-room.not-empty", "%prefix% &cThere are still offers in your room");
 		Config.addDefault("minebay.info.sell-room.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.retract-sale.success", "%prefix% &aSuccessfully retracted your sale");
-		//Config.addDefault("minebay.user-rooms.enable", true);
+		Config.addDefault("minebay.info.user-rooms-disabled", "%prefix% &cUser rooms are disabled!");
+		Config.addDefault("minebay.info.reload-complete", "%prefix% &aReload complete");
+		Config.addDefault("minebay.info.reload-no-permission", "%prefix% &cNo permission");
+		Config.addDefault("minebay.user-rooms.enable", true);
 		Config.addDefault("minebay.default-auction-room.slots", -1);
 		Config.addDefault("minebay.default-auction-room.taxshare", 5);
 		Config.addDefault("minebay.default-auction-room.name", "Default Auction Room");
@@ -77,6 +87,41 @@ public class Config {
 		Config.addDefault("room-perm.user.donator.max-rooms", 7);
 		Config.options().copyDefaults(true);
 		save();
+		/*try {
+			loadConfigFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
+	}
+	
+	//TODO:Will be added someday in the future
+	@SuppressWarnings("unused")
+	private static void loadConfigFile() throws IOException{
+		System.out.println("LOAD!");
+		URL u = Main.class.getResource("/res/default-config.yml");
+		System.out.println(u.getFile());
+		InputStream in = new FileInputStream(new File(u.getFile()));
+		//File dFl = new File(Main.class.getClassLoader().getResource("./res/default-config.yml").getFile());
+		//System.out.println(dFl.getPath());
+		//FileInputStream in = new FileInputStream(dFl);
+		File cFl = new File(Main.pl.getDataFolder(), "config.yml");
+		if(!cFl.exists()){
+			Main.pl.getLogger().info("Generating default config...");
+			FileOutputStream out = new FileOutputStream(cFl);
+			byte[] buf = new byte[1024];
+			int curr;
+			while((curr = in.read(buf))>0){
+				out.write(buf, 0, curr);
+			}
+			out.close();
+			Main.pl.saveDefaultConfig();
+			try {
+				Main.pl.getConfig().load(cFl);
+			} catch (InvalidConfigurationException e) {
+				e.printStackTrace();
+			}
+		}
+		in.close();
 	}
 	
 	public static String simpleReplace(String s){

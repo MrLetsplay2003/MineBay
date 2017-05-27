@@ -137,13 +137,18 @@ public class Events implements Listener{
 								}
 							}else if(name.equals("§7Sell 1 slot")){
 								if(r.getSlots() > Config.Config.getInt("minebay.user-rooms.default-slot-number")){
-									EconomyResponse re = Main.econ.depositPlayer((OfflinePlayer)e.getWhoClicked(), Config.Config.getInt("minebay.user-rooms.slot-price"));
-									if(re.transactionSuccess()){
-										r.setSlots(r.getSlots()-1);
-										r.saveAllSettings();
-										r.updateSettings();
-										MineBay.updateRoomSelection();
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.success")));
+									System.out.println(r.getOccupiedSlots()+"/"+r.getSlots());
+									if(r.getOccupiedSlots() <= r.getSlots()-1){
+										EconomyResponse re = Main.econ.depositPlayer((OfflinePlayer)e.getWhoClicked(), Config.Config.getInt("minebay.user-rooms.slot-price"));
+										if(re.transactionSuccess()){
+											r.setSlots(r.getSlots()-1);
+											r.saveAllSettings();
+											r.updateSettings();
+											MineBay.updateRoomSelection();
+											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.success")));
+										}
+									}else{
+										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.all-slots-occupied")));
 									}
 								}else{
 									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.notenoughslots")));
@@ -295,7 +300,7 @@ public class Events implements Listener{
 						}
 						if(re.transactionSuccess() && r2.transactionSuccess()){
 							if((owner!=null && r3!=null && r3.transactionSuccess()) || owner==null){
-								e.getWhoClicked().sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.purchase.success")), it));
+								e.getWhoClicked().sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.purchase.success")), it));
 								r.removeSellItem(id);
 								r.updateMineBay();
 								Player p = (Player)e.getWhoClicked();
@@ -305,14 +310,14 @@ public class Events implements Listener{
 								}
 								e.getWhoClicked().closeInventory();
 								if(seller.isOnline()){
-									((Player)seller).sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.sell.seller.success")), it).replace("%buyer%", e.getWhoClicked().getName()).replace("%price2%", ""+sellerAm));
+									((Player)seller).sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.purchase.seller.success")), it).replace("%buyer%", e.getWhoClicked().getName()).replace("%price2%", ""+sellerAm));
 								}
 								if(owner!=null && owner.isOnline() && r.getTaxshare() > 0){
-									((Player)owner).sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.sell.owner.success")), it).replace("%buyer%", e.getWhoClicked().getName()).replace("%price2%", ""+ownerAm));
+									((Player)owner).sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.purchase.room-owner.success")), it).replace("%buyer%", e.getWhoClicked().getName()).replace("%price2%", ""+ownerAm));
 								}
 							}
 						}else{
-							e.getWhoClicked().sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.purchase.error")), it).replace("%error%", re.errorMessage));
+							e.getWhoClicked().sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.purchase.error")), it).replace("%error%", re.errorMessage));
 							e.getWhoClicked().closeInventory();
 						}
 					}else if(name.equals("§cCancel")){
