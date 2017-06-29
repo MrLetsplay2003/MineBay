@@ -3,8 +3,11 @@ package me.mrletsplay.minebay;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.DyeColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class SellItem{
@@ -55,8 +58,10 @@ public class SellItem{
 	}
 	
 	public ItemStack getConfirmItemStack(){
-		ItemStack newItem = new ItemStack(item);
-		ItemMeta im = newItem.getItemMeta();
+		ItemStack newItem = new ItemStack(Material.BANNER);
+		BannerMeta im = (BannerMeta) newItem.getItemMeta();
+		im.setBaseColor(DyeColor.YELLOW);
+		im.setDisplayName("§eInfo");
 		List<String> lore = new ArrayList<>();
 		lore.add("§8Price: §7"+price+" "+Main.econ.currencyNamePlural());
 		lore.add("§8Seller: §7"+seller);

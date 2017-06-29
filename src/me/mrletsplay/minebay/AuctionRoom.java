@@ -7,10 +7,12 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,7 +24,7 @@ public class AuctionRoom {
 	private int slots;
 	private int roomID;
 	private String name;
-	private Material iconMaterial;
+	private ItemStack icon;
 	
 	private File roomFile;
 	private FileConfiguration roomConfig;
@@ -34,20 +36,20 @@ public class AuctionRoom {
 		int taxshare = roomConfig.getInt("tax-share");
 		int slots = roomConfig.getInt("slots");
 		String name = roomConfig.getString("name");
-		Material m = Material.getMaterial(roomConfig.getString("icon-material"));
+		ItemStack ic = roomConfig.getItemStack("icon");
 		this.owner = owner;
 		this.roomID = id;
 		this.taxshare = taxshare;
 		this.slots = slots;
 		this.name = name;
-		this.iconMaterial = m;
+		this.icon = ic;
 	}
 	
 	public void setDefaultSettings(String owner){
 		this.owner = owner;
 		this.taxshare = Config.Config.getInt("minebay.user-rooms.default-tax-percent");
 		this.slots = Config.Config.getInt("minebay.user-rooms.default-slot-number");
-		this.iconMaterial = Material.getMaterial(Config.Config.getString("minebay.user-rooms.default-icon-material"));
+		this.icon = new ItemStack(Material.getMaterial(Config.Config.getString("minebay.user-rooms.default-icon-material")));
 		if(owner!=null){
 			this.name = owner+"'s Auction Room";
 		}else{
@@ -61,7 +63,7 @@ public class AuctionRoom {
 		roomConfig.set("tax-share", taxshare);
 		roomConfig.set("slots", slots);
 		roomConfig.set("name", name);
-		roomConfig.set("icon-material", iconMaterial.name());
+		roomConfig.set("icon", icon);
 		saveRoomConfig();
 	}
 	
@@ -93,10 +95,6 @@ public class AuctionRoom {
 		return roomID;
 	}
 	
-	public Material getIconMaterial() {
-		return iconMaterial;
-	}
-	
 	public String getName() {
 		return name;
 	}
@@ -109,8 +107,12 @@ public class AuctionRoom {
 		this.taxshare = taxshare;
 	}
 	
-	public void setIconMaterial(Material iconMaterial) {
-		this.iconMaterial = iconMaterial;
+	public void setIcon(ItemStack icon) {
+		this.icon = icon;
+	}
+	
+	public ItemStack getIcon() {
+		return icon;
 	}
 	
 	public void addSellItem(SellItem item){
@@ -223,7 +225,9 @@ public class AuctionRoom {
 			l.add("§7Room ID: "+roomID);
 			gMeta3.setLore(l);
 			gPane3.setItemMeta(gMeta3);
-			inv.setItem(45, gPane3);
+			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+			inv.setItem(45, back);
+			inv.setItem(46, gPane3);
 			inv.setItem(52, gPane1);
 			inv.setItem(53, gPane2);
 			return inv;
@@ -252,18 +256,20 @@ public class AuctionRoom {
 		inv.setItem(10, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Name", "§8Current: §7"+name));
 		inv.setItem(14, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Name"));
 		
-		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Block", "§8Current: §7"+iconMaterial.toString().toLowerCase().replace("_", " ")));
+		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Block", "§8Current: §7"+icon.getType().toString().toLowerCase().replace("_", " ")));
 		inv.setItem(23, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Block"));
 		
 		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Slots", "§8Current: §7"+slots));
-		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), "§7Buy 1 slot"));
-		inv.setItem(33, Tools.createItem(Tools.arrowRight(), "§7Sell 1 slot"));
+		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), "§7Buy slot/s", "§8Left click to buy 1 slot", "§8Shift-left click to buy 5 slots"));
+		inv.setItem(33, Tools.createItem(Tools.arrowRight(), "§7Sell slot/s", "§8Left click to sell 1 slot", "§8Shift-left click to sell 5 slots"));
 
 		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Tax", "§8Current: §7"+taxshare+"%"));
-		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax"));
-		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax"));
+		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax", "§8Left click to increase tax by 1%", "§8Shift left-click to increase tax by 10%"));
+		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax", "§8Left click to decrease tax by 1%", "§8Shift left-click to decrease tax by 10%"));
 		
-		inv.setItem(45, gPane3);
+		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+		inv.setItem(45, back);
+		inv.setItem(46, gPane3);
 		
 		inv.setItem(53, Tools.createItem(Material.STAINED_CLAY, 1, 14, "§cDelete Room"));
 		return inv;
@@ -271,7 +277,7 @@ public class AuctionRoom {
 	
 	public static int getMineBayPage(Inventory inv){
 		try{
-			int page = Integer.parseInt(Config.onlyDigitsNoColor(inv.getItem(45).getItemMeta().getLore().get(0)));
+			int page = Integer.parseInt(Config.onlyDigitsNoColor(inv.getItem(46).getItemMeta().getLore().get(0)));
 			return page;
 		}catch(Exception e){
 			return -1;
@@ -322,7 +328,7 @@ public class AuctionRoom {
 	}
 	
 	public ItemStack getSelectItemStack(Player p){
-		ItemStack newItem = new ItemStack(iconMaterial);
+		ItemStack newItem = icon.clone();
 		ItemMeta im = newItem.getItemMeta();
 		im.setDisplayName("§7"+name);
 		List<String> lore = new ArrayList<>();
@@ -347,7 +353,7 @@ public class AuctionRoom {
 	}
 	
 	public Inventory getBlockSelectionInv(){
-		Inventory inv = Bukkit.createInventory(null, 3*9, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")));
+		Inventory inv = Bukkit.createInventory(null, 6*9, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")));
 		ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
 		ItemMeta gMeta3 = gPane3.getItemMeta();
 		gMeta3.setDisplayName("§8Change Block");
@@ -355,6 +361,11 @@ public class AuctionRoom {
 		l.add("§8Room ID: §7"+roomID);
 		gMeta3.setLore(l);
 		gPane3.setItemMeta(gMeta3);
+		
+		ItemStack it = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
+		for(int i = 5*9; i < inv.getSize(); i++){
+			inv.setItem(i, it);
+		}
 		
 		inv.setItem(0, Tools.createItem(Material.GRASS, 1, 0, "§7Block | Grass"));
 		inv.setItem(1, Tools.createItem(Material.DIRT, 1, 0, "§7Block | Dirt"));
@@ -370,13 +381,34 @@ public class AuctionRoom {
 		inv.setItem(11, Tools.createItem(Material.COBBLESTONE, 1, 0, "§7Block | Cobblestone"));
 		inv.setItem(12, Tools.createItem(Material.OBSIDIAN, 1, 0, "§7Block | Obsidian"));
 		inv.setItem(13, Tools.createItem(Material.LAPIS_BLOCK, 1, 0, "§7Block | Lapis Lazuli Block"));
+		inv.setItem(14, Tools.createItem(Material.DIAMOND, 1, 0, "§7Item | Diamond"));
+		inv.setItem(15, Tools.createItem(Material.EMERALD, 1, 0, "§7Item | Emerald"));
+		inv.setItem(16, Tools.createItem(Material.GOLD_INGOT, 1, 0, "§7Item | Gold Ingot"));
+		inv.setItem(17, Tools.createItem(Material.IRON_INGOT, 1, 0, "§7Item | Iron Ingot"));
+		inv.setItem(18, Tools.createItem(Material.REDSTONE, 1, 0, "§7Item | Redstone"));
+		inv.setItem(19, Tools.createItem(Material.COAL, 1, 0, "§7Item | Coal"));
 		
-		inv.setItem(18, gPane3);
+		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+		inv.setItem(45, back);
+		inv.setItem(46, gPane3);
+		
+		inv.setItem(6*9-1, Tools.createItem(Tools.letterC(DyeColor.ORANGE), "§6Custom block/item", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.custom-icon-price")));
+		
+		return inv;
+	}
+	
+	public Inventory getIconChangeMenu(){
+		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")+" §8Custom icon"));
 		
 		ItemStack it = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
-		for(int i = 19; i < inv.getSize(); i++){
+		for(int i = 0; i < inv.getSize(); i++){
 			inv.setItem(i, it);
 		}
+		
+		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+		inv.setItem(0, back);
+		inv.setItem(1, Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§8Custom icon", "§8Room ID: §7"+roomID));
+		inv.setItem(2, Tools.createItem(Material.STAINED_GLASS_PANE, 1, 7, "§8Drop item here"));
 		
 		return inv;
 	}
