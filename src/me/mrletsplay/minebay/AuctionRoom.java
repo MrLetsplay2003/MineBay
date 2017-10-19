@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.UUID;
 
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -23,8 +25,9 @@ public class AuctionRoom {
 	private int taxshare;
 	private int slots;
 	private int roomID;
-	private String name;
+	private String name, description;
 	private ItemStack icon;
+	private boolean isDefaultRoom;
 	
 	private File roomFile;
 	private FileConfiguration roomConfig;
@@ -32,29 +35,28 @@ public class AuctionRoom {
 	public AuctionRoom(int id) {
 		roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
 		roomConfig = YamlConfiguration.loadConfiguration(roomFile);
-		String owner = roomConfig.getString("owner");
-		int taxshare = roomConfig.getInt("tax-share");
-		int slots = roomConfig.getInt("slots");
-		String name = roomConfig.getString("name");
-		ItemStack ic = roomConfig.getItemStack("icon");
-		this.owner = owner;
+		this.owner = roomConfig.getString("owner");
+		this.taxshare = roomConfig.getInt("tax-share");
+		this.slots = roomConfig.getInt("slots");
+		this.name = roomConfig.getString("name");
+		this.description = roomConfig.getString("description");
+		this.icon = roomConfig.getItemStack("icon");
+		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.roomID = id;
-		this.taxshare = taxshare;
-		this.slots = slots;
-		this.name = name;
-		this.icon = ic;
 	}
 	
-	public void setDefaultSettings(String owner){
+	public void setDefaultSettings(String owner, boolean isDefaultRoom){
 		this.owner = owner;
 		this.taxshare = Config.Config.getInt("minebay.user-rooms.default-tax-percent");
 		this.slots = Config.Config.getInt("minebay.user-rooms.default-slot-number");
 		this.icon = new ItemStack(Material.getMaterial(Config.Config.getString("minebay.user-rooms.default-icon-material")));
+		this.isDefaultRoom = isDefaultRoom;
 		if(owner!=null){
-			this.name = owner+"'s Auction Room";
+			this.name = getOwnerName()+"'s Auction Room";
 		}else{
 			this.name = "Default Auction Room";
 		}
+		this.description=null;
 		saveAllSettings();
 	}
 	
@@ -63,7 +65,9 @@ public class AuctionRoom {
 		roomConfig.set("tax-share", taxshare);
 		roomConfig.set("slots", slots);
 		roomConfig.set("name", name);
+		roomConfig.set("description", description);
 		roomConfig.set("icon", icon);
+		roomConfig.set("default-room", isDefaultRoom);
 		saveRoomConfig();
 	}
 	
@@ -83,6 +87,27 @@ public class AuctionRoom {
 		return owner;
 	}
 	
+	public boolean isOwner(Player p) {
+		if(Config.use_uuids) {
+			return p.getUniqueId().toString().equals(owner);
+		}else {
+			return p.getName().equals(owner);
+		}
+	}
+	
+	public boolean canEdit(Player p) {
+		return (p!=null && isOwner(p)) || (p!=null && isDefaultRoom && p.hasPermission("minebay.default-rooms.allow-edit")) || (p!=null && !isDefaultRoom && p.hasPermission("minebay.user-rooms.allow-edit"));
+	}
+	
+	public String getOwnerName() {
+		if(owner==null) return null;
+		if(!Config.use_uuids) {
+			return owner;
+		}else {
+			return Bukkit.getOfflinePlayer(UUID.fromString(owner)).getName();
+		}
+	}
+	
 	public int getTaxshare() {
 		return taxshare;
 	}
@@ -97,6 +122,14 @@ public class AuctionRoom {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public String getDescription() {
+		return description;
 	}
 	
 	public void setSlots(int slots) {
@@ -170,10 +203,10 @@ public class AuctionRoom {
 		return sellers.size();
 	}
 	
-	public List<SellItem> getSoldItemsBySeller(String seller){
+	public List<SellItem> getSoldItemsBySeller(Player seller){
 		List<SellItem> it = new ArrayList<>();
 		for(SellItem i : getSoldItems()){
-			if(i.getSeller().equals(seller)){
+			if(i.isSeller(seller)){
 				it.add(i);
 			}
 		}
@@ -185,7 +218,7 @@ public class AuctionRoom {
 			ItemStack item = roomConfig.getItemStack("sold-items.item."+id+".item");
 			String seller = roomConfig.getString("sold-items.item."+id+".seller");
 			int price = roomConfig.getInt("sold-items.item."+id+".price");
-			return new SellItem(item, AuctionRooms.getAuctionRoomByID(roomID), seller,price, id);
+			return new SellItem(item, AuctionRooms.getAuctionRoomByID(roomID), seller, price, id);
 		}else{
 			return null;
 		}
@@ -253,17 +286,30 @@ public class AuctionRoom {
 		gMeta3.setLore(l);
 		gPane3.setItemMeta(gMeta3);
 		
-		inv.setItem(10, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Name", "§8Current: §7"+name));
-		inv.setItem(14, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Name"));
+		List<String> l1 = new ArrayList<>();
+		l1.add("§8Currently: §7"+name);
+		l1.add("");
+		l1.add("§7Description");
+		if(description!=null) {
+			for(String s : WordUtils.wrap("§8Currently: §7"+description, 50).split(System.lineSeparator())) {
+				l1.add("§7"+s);
+			}
+		}else {
+			l1.add("§8Currently: §7none");
+		}
 		
-		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Block", "§8Current: §7"+icon.getType().toString().toLowerCase().replace("_", " ")));
+		inv.setItem(10, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Name", l1.toArray(new String[l1.size()])));
+		inv.setItem(14, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Name"));
+		inv.setItem(15, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Description"));
+		
+		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Block", "§8Currently: §7"+icon.getType().toString().toLowerCase().replace("_", " ")));
 		inv.setItem(23, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Block"));
 		
-		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Slots", "§8Current: §7"+slots));
+		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Slots", "§8Currently: §7"+slots));
 		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), "§7Buy slot/s", "§8Left click to buy 1 slot", "§8Shift-left click to buy 5 slots"));
 		inv.setItem(33, Tools.createItem(Tools.arrowRight(), "§7Sell slot/s", "§8Left click to sell 1 slot", "§8Shift-left click to sell 5 slots"));
 
-		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Tax", "§8Current: §7"+taxshare+"%"));
+		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Tax", "§8Currently: §7"+taxshare+"%"));
 		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax", "§8Left click to increase tax by 1%", "§8Shift left-click to increase tax by 10%"));
 		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax", "§8Left click to decrease tax by 1%", "§8Shift left-click to decrease tax by 10%"));
 		
@@ -333,7 +379,7 @@ public class AuctionRoom {
 		im.setDisplayName("§7"+name);
 		List<String> lore = new ArrayList<>();
 		if(owner!=null){
-			lore.add("§8Owner: §7"+owner);
+			lore.add("§8Owner: §7"+getOwnerName());
 		}else{
 			lore.add("§8Owner: §7None");
 		}
@@ -344,7 +390,12 @@ public class AuctionRoom {
 		}
 		lore.add("§8Tax: §7"+taxshare+"%");
 		lore.add("§8ID: §7"+roomID);
-		if(p!=null && p.getName().equals(owner)){
+		if(description!=null) {
+			for(String s : WordUtils.wrap("§8Description: §7"+description, 50).split(System.lineSeparator())) {
+				lore.add("§7"+s);
+			}
+		}
+		if(canEdit(p)){
 			lore.add("§7Right-click for settings");
 		}
 		im.setLore(lore);
@@ -411,6 +462,20 @@ public class AuctionRoom {
 		inv.setItem(2, Tools.createItem(Material.STAINED_GLASS_PANE, 1, 7, "§8Drop item here"));
 		
 		return inv;
+	}
+	
+	public int getWorth(){
+		if(isDefaultRoom){
+			return 0;
+		}else{
+			int sl = (slots - Config.Config.getInt("minebay.user-rooms.default-slot-number"))*Config.Config.getInt("minebay.user-rooms.slot-sell-price");
+			int pr = Config.Config.getInt("minebay.user-rooms.room-sell-price");
+			return sl+pr;
+		}
+	}
+	
+	public boolean isDefaultRoom() {
+		return isDefaultRoom;
 	}
 	
 }

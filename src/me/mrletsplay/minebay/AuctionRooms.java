@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 public class AuctionRooms {
 	
@@ -20,8 +21,8 @@ public class AuctionRooms {
 		}
 	}
 	
-	public static AuctionRoom createAuctionRoom(String player, int id){
-		AuctionRoom nRoom = getNewAuctionRoom(player, id);
+	public static AuctionRoom createAuctionRoom(Player player, int id, boolean isDefaultRoom){
+		AuctionRoom nRoom = getNewAuctionRoom(player, id, isDefaultRoom);
 		nRoom.saveAllSettings();
 		List<Integer> rIDs = getAuctionRoomIDs();
 		if(!rIDs.contains(nRoom.getRoomID())){
@@ -43,9 +44,9 @@ public class AuctionRooms {
 		save();
 	}
 	
-	public static AuctionRoom getNewAuctionRoom(String owner, int id){
+	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){
 		AuctionRoom r = new AuctionRoom(id);
-		r.setDefaultSettings(owner);
+		r.setDefaultSettings(owner!=null?(Config.use_uuids?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
 		return r;
 	}
 	
@@ -63,7 +64,7 @@ public class AuctionRooms {
 		List<AuctionRoom> aRooms = new ArrayList<>();
 		for(int id : aRoomIDs){
 			AuctionRoom r = getAuctionRoomByID(id);
-			if(r.getOwner()!=null && r.getOwner().equals(owner)){
+			if(r.getOwnerName()!=null && r.getOwnerName().equals(owner)){
 				aRooms.add(r);
 			}
 		}

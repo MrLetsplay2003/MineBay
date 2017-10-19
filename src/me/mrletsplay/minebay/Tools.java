@@ -1,12 +1,15 @@
 package me.mrletsplay.minebay;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
@@ -117,6 +120,13 @@ public class Tools {
 		}
 		banner.setItemMeta(bMeta);
 		return banner;
+	}
+	
+	public static void addItem(Player p, ItemStack item){
+		HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item);
+		for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
+			p.getWorld().dropItem(p.getLocation(), me.getValue());
+		}
 	}
 	
 }

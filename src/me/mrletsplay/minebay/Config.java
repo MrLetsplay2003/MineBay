@@ -1,15 +1,9 @@
 package me.mrletsplay.minebay;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import net.md_5.bungee.api.ChatColor;
@@ -17,6 +11,8 @@ import net.md_5.bungee.api.ChatColor;
 public class Config {
 	
 	public static FileConfiguration Config = Main.pl.getConfig();
+	
+	public static boolean use_uuids;
 	
 	public static void save(){
 		try{
@@ -43,8 +39,11 @@ public class Config {
 		Config.addDefault("minebay.info.sell.error.no-slots", "%prefix% &cAll slots are already occupied");
 		Config.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% &cYou have already sold too many items in that room");
 		Config.addDefault("minebay.info.newname", "%prefix% &aType in a new name (Max. %maxchars% Characters)");
-		Config.addDefault("minebay.info.newname-cancelled", "%prefix% &c Old rename action cancelled!");
+		Config.addDefault("minebay.info.newname-cancelled", "%prefix% &cOld rename action cancelled!");
 		Config.addDefault("minebay.info.newname-applied", "%prefix% &aName changed to: %newname%");
+		Config.addDefault("minebay.info.newdescription", "%prefix% &aType in a new description");
+		Config.addDefault("minebay.info.newdescription-cancelled", "%prefix% &c Old description change action cancelled!");
+		Config.addDefault("minebay.info.newdescription-applied", "%prefix% &aDescription changed to: %newdescription%");
 		Config.addDefault("minebay.info.error.name-too-long", "%prefix% &cMaximum name length: %maxchars%");
 		Config.addDefault("minebay.info.newicon-applied", "%prefix% &aRoom icon changed to: %type%");
 		Config.addDefault("minebay.info.buy-icon.success", "%prefix% &aBought icon for %price% %currency%, room icon changed to: %type%");
@@ -55,17 +54,20 @@ public class Config {
 		Config.addDefault("minebay.info.slot-buy.success", "%prefix% &aBought %slotamount% slot/s for %price% %currency%");
 		Config.addDefault("minebay.info.slot-buy.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.slot-buy.toomanyslots", "%prefix% &cYou already have reached the maximum amount of slots");
+		Config.addDefault("minebay.info.slot-buy.is-default", "%prefix% &cYou can't buy slots for auction room as it is a default auction room");
 		Config.addDefault("minebay.info.slot-sell.success", "%prefix% &aSold %slotamount% slot/s for %price% %currency%");
 		Config.addDefault("minebay.info.slot-sell.not-allowed", "%prefix% &cSlot selling is not allowed");
 		Config.addDefault("minebay.info.slot-sell.all-slots-occupied", "%prefix% &cAll slots are currently occupied");
 		Config.addDefault("minebay.info.slot-sell.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.slot-sell.notenoughslots", "%prefix% &cYou already have reached the minimum amount of slots");
+		Config.addDefault("minebay.info.slot-sell.is-default", "%prefix% &cYou can't sell slots of auction room as it is a default auction room");
 		Config.addDefault("minebay.info.tax.success", "%prefix% &aChanged the tax to %newtax%%");
 		Config.addDefault("minebay.info.tax.toohigh", "%prefix% &cYou already have reached the maximum tax");
 		Config.addDefault("minebay.info.tax.toolow", "%prefix% &cYou can't set the tax below 0%");
 		Config.addDefault("minebay.info.sell-room.success", "%prefix% &aSuccessfully sold your room for %price% %currency%");
 		Config.addDefault("minebay.info.sell-room.not-allowed", "%prefix% &cRoom selling is not allowed");
 		Config.addDefault("minebay.info.sell-room.not-empty", "%prefix% &cThere are still offers in your room");
+		Config.addDefault("minebay.info.sell-room.is-default", "%prefix% &cYou can't sell this auction room as it is the default auction room");
 		Config.addDefault("minebay.info.sell-room.error", "%prefix% &cError: %error%");
 		Config.addDefault("minebay.info.retract-sale.success", "%prefix% &aSuccessfully retracted your sale");
 		Config.addDefault("minebay.info.user-rooms-disabled", "%prefix% &cUser rooms are disabled!");
@@ -82,12 +84,11 @@ public class Config {
 		Config.addDefault("minebay.general.enable-update-check", true);
 		Config.addDefault("minebay.general.update-check-on-join", true);
 		Config.addDefault("minebay.general.update-check-on-command", true);
-		Config.addDefault("minebay.default-auction-room.slots", -1);
-		Config.addDefault("minebay.default-auction-room.taxshare", 5);
-		Config.addDefault("minebay.default-auction-room.name", "Default Auction Room");
-		Config.addDefault("minebay.default-auction-room.icon-material", "DIAMOND_BLOCK");
-		Config.addDefault("minebay.default-auction-room.icon-material-damage", 0);
-		Config.addDefault("minebay.default-auction-room.applySettings", false);
+		Config.addDefault("minebay.general.user-rooms-settings.change-icon-remove-item", true);
+		Config.addDefault("minebay.general.use-uuids", true);
+		List<String> aliases = new ArrayList<>();
+		aliases.add("/market");
+		Config.addDefault("minebay.general.command-aliases", aliases);
 		Config.addDefault("minebay.user-rooms.room-price", 1000);
 		Config.addDefault("minebay.user-rooms.room-sell-price", 900);
 		Config.addDefault("minebay.user-rooms.slot-price", 100);
@@ -107,45 +108,13 @@ public class Config {
 		Config.addDefault("room-perms", perms);
 		Config.addDefault("room-perm.user.premium.max-rooms", 5);
 		Config.addDefault("room-perm.user.premium.allow-colored-names", false);
+		Config.addDefault("room-perm.user.premium.allow-colored-descriptions", true);
 		Config.addDefault("room-perm.user.donator.max-rooms", 7);
 		Config.addDefault("room-perm.user.donator.allow-colored-names", true);
+		Config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
 		Config.options().copyDefaults(true);
+		use_uuids = Config.getBoolean("minebay.general.use-uuids")&&Bukkit.getOnlineMode();
 		save();
-		/*try {
-			loadConfigFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
-	}
-	
-	//TODO:Will be added someday in the future
-	@SuppressWarnings("unused")
-	private static void loadConfigFile() throws IOException{
-		System.out.println("LOAD!");
-		URL u = Main.class.getResource("/res/default-config.yml");
-		System.out.println(u.getFile());
-		InputStream in = new FileInputStream(new File(u.getFile()));
-		//File dFl = new File(Main.class.getClassLoader().getResource("./res/default-config.yml").getFile());
-		//System.out.println(dFl.getPath());
-		//FileInputStream in = new FileInputStream(dFl);
-		File cFl = new File(Main.pl.getDataFolder(), "config.yml");
-		if(!cFl.exists()){
-			Main.pl.getLogger().info("Generating default config...");
-			FileOutputStream out = new FileOutputStream(cFl);
-			byte[] buf = new byte[1024];
-			int curr;
-			while((curr = in.read(buf))>0){
-				out.write(buf, 0, curr);
-			}
-			out.close();
-			Main.pl.saveDefaultConfig();
-			try {
-				Main.pl.getConfig().load(cFl);
-			} catch (InvalidConfigurationException e) {
-				e.printStackTrace();
-			}
-		}
-		in.close();
 	}
 	
 	public static String simpleReplace(String s){
@@ -167,7 +136,7 @@ public class Config {
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%amount%", ""+it.getItem().getAmount())
 				.replace("%type%", it.getItem().getType().toString().toLowerCase().replace("_", " "))
-				.replace("%seller%", it.getSeller())
+				.replace("%seller%", it.getSellerName())
 				.replace("%price%", ""+it.getPrice()))
 				.replace("%roomtax%", ""+r.getTaxshare());
 		return s;

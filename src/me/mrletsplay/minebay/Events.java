@@ -2,6 +2,7 @@ package me.mrletsplay.minebay;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -13,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -24,6 +26,7 @@ public class Events implements Listener{
 	
 	public static HashMap<Player,Integer> changeName = new HashMap<>();
 	public static HashMap<Player,Object[]> sellItem = new HashMap<>();
+	public static HashMap<Player,Integer> changeDescription = new HashMap<>();
 	
 
 	@SuppressWarnings("deprecation")
@@ -85,7 +88,7 @@ public class Events implements Listener{
 								int id = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(2)));
 								SellItem it = r.getItemByID(id);
 								if(it!=null){
-									if(it.getSeller()!=null && !it.getSeller().equals(e.getWhoClicked().getName())){
+									if(it.getSeller()!=null && !it.isSeller((Player) e.getWhoClicked())){
 										e.getWhoClicked().closeInventory();
 										MineBay.showPurchaseConfirmDialog((Player)e.getWhoClicked(), it);
 									}else{
@@ -134,13 +137,11 @@ public class Events implements Listener{
 									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.user-rooms-disabled")));
 								}
 							}else if(e.getCurrentItem().getItemMeta().hasLore() && e.getCurrentItem().getItemMeta().getLore().size() >= 4){
+								int clRoomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(3)));
+								AuctionRoom r = AuctionRooms.getAuctionRoomByID(clRoomID);
 								if(e.getClick().equals(ClickType.LEFT)){
-									int clRoomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(3)));
-									AuctionRoom r = AuctionRooms.getAuctionRoomByID(clRoomID);
 									MineBay.changeInv(e.getInventory(), r.getMineBayInv(0, (Player)e.getWhoClicked()));
-								}else if(e.getClick().equals(ClickType.RIGHT) && e.getCurrentItem().getItemMeta().getLore().size() == 5){
-									int clRoomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(3)));
-									AuctionRoom r = AuctionRooms.getAuctionRoomByID(clRoomID);
+								}else if(e.getClick().equals(ClickType.RIGHT) && r.canEdit((Player) e.getWhoClicked())){
 									MineBay.changeInv(e.getInventory(), r.getSettingsMenu());
 								}
 							}
@@ -151,64 +152,80 @@ public class Events implements Listener{
 							int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
 							AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
 							if(name.equals("§7Change Name")){
-								Events.changeName.put((Player)e.getWhoClicked(), roomID);
+								Events.changeDescription.put((Player)e.getWhoClicked(), roomID);
 								int maxTime = Config.Config.getInt("minebay.general.max-type-time-seconds");
 								if(maxTime>0){
 									Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask((Player) e.getWhoClicked()), maxTime*20);
 								}
 								e.getWhoClicked().closeInventory();
 								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.newname")));
+							}else if(name.equals("§7Change Description")){
+								Events.changeDescription.put((Player)e.getWhoClicked(), roomID);
+								int maxTime = Config.Config.getInt("minebay.general.max-type-time-seconds");
+								if(maxTime>0){
+									Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask((Player) e.getWhoClicked()), maxTime*20);
+								}
+								e.getWhoClicked().closeInventory();
+								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.newdescription")));
 							}else if(name.equals("§7Change Block")){
 								MineBay.changeInv(e.getInventory(), r.getBlockSelectionInv());
 								r.saveAllSettings();
 								r.updateSettings();
 								MineBay.updateRoomSelection();
 							}else if(name.equals("§7Buy slot/s")){
-								if(e.getClick().equals(ClickType.LEFT)){
-									if(r.getSlots() < Config.Config.getInt("minebay.user-rooms.max-slots")){
-										e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §71")));
-									}else{
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-buy.toomanyslots")));
-									}
-								}else if(e.getClick().equals(ClickType.SHIFT_LEFT)){
-									if(r.getSlots()+5 <= Config.Config.getInt("minebay.user-rooms.max-slots")){
-										e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §75")));
-									}else if(r.getSlots() < Config.Config.getInt("minebay.user-rooms.max-slots")){
-										e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §7"+(Config.Config.getInt("minebay.user-rooms.max-slots")-r.getSlots()))));
-									}else{
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-buy.toomanyslots")));
-									}
-								}
-							}else if(name.equals("§7Sell slot/s")){
-								if(Config.Config.getBoolean("minebay.general.allow-slot-selling")){
+								if(!r.isDefaultRoom()){
 									if(e.getClick().equals(ClickType.LEFT)){
-										if(r.getSlots() > Config.Config.getInt("minebay.user-rooms.default-slot-number")){
-											if(r.getOccupiedSlots() <= r.getSlots()-1){
-												e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §71")));
-											}else{
-												e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.all-slots-occupied")));
-											}
+										if(r.getSlots() < Config.Config.getInt("minebay.user-rooms.max-slots")){
+											e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §71")));
 										}else{
-											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.notenoughslots")));
+											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-buy.toomanyslots")));
 										}
 									}else if(e.getClick().equals(ClickType.SHIFT_LEFT)){
-										if(r.getSlots()-5 >= Config.Config.getInt("minebay.user-rooms.default-slot-number")){
-											if(r.getOccupiedSlots() <= r.getSlots()-5){
-												e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §75")));
-											}else{
-												e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.all-slots-occupied")));
-											}
-										}else if(r.getSlots() > Config.Config.getInt("minebay.user-rooms.default-slot-number")){
-											int slotsToSell = r.getSlots()-Config.Config.getInt("minebay.user-rooms.default-slot-number");
-											if(r.getOccupiedSlots() <= r.getSlots()-slotsToSell){
-												e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §7"+slotsToSell)));
-											}
+										if(r.getSlots()+5 <= Config.Config.getInt("minebay.user-rooms.max-slots")){
+											e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §75")));
+										}else if(r.getSlots() < Config.Config.getInt("minebay.user-rooms.max-slots")){
+											e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §7"+(Config.Config.getInt("minebay.user-rooms.max-slots")-r.getSlots()))));
 										}else{
-											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.notenoughslots")));
+											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-buy.toomanyslots")));
 										}
 									}
 								}else{
-									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.not-allowed")));
+									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-buy.is-default")));
+								}
+							}else if(name.equals("§7Sell slot/s")){
+								if(!r.isDefaultRoom()){
+									if(Config.Config.getBoolean("minebay.general.allow-slot-selling")){
+										if(e.getClick().equals(ClickType.LEFT)){
+											if(r.getSlots() > Config.Config.getInt("minebay.user-rooms.default-slot-number")){
+												if(r.getOccupiedSlots() <= r.getSlots()-1){
+													e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §71")));
+												}else{
+													e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.all-slots-occupied")));
+												}
+											}else{
+												e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.notenoughslots")));
+											}
+										}else if(e.getClick().equals(ClickType.SHIFT_LEFT)){
+											if(r.getSlots()-5 >= Config.Config.getInt("minebay.user-rooms.default-slot-number")){
+												if(r.getOccupiedSlots() <= r.getSlots()-5){
+													e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §75")));
+												}else{
+													e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.all-slots-occupied")));
+												}
+											}else if(r.getSlots() > Config.Config.getInt("minebay.user-rooms.default-slot-number")){
+												int slotsToSell = r.getSlots()-Config.Config.getInt("minebay.user-rooms.default-slot-number");
+												if(r.getOccupiedSlots() <= r.getSlots()-slotsToSell){
+													e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+r.getRoomID(), "§8Count: §7"+slotsToSell)));
+												}
+											}else{
+												e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.notenoughslots")));
+											}
+										}
+									}else{
+										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.not-allowed")));
+									}
+								}else{
+									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.slot-sell.is-default")));
 								}
 							}else if(name.equals("§7Increase Tax")){
 								if(e.getClick().equals(ClickType.LEFT)){
@@ -280,12 +297,17 @@ public class Events implements Listener{
 								}
 							}else if(name.equals("§cDelete Room")){
 								if(Config.Config.getBoolean("minebay.general.allow-room-selling")){
-									if(r.getSoldItems().isEmpty()){
-										int sl = (r.getSlots() - Config.Config.getInt("minebay.user-rooms.default-slot-number"))*Config.Config.getInt("minebay.user-rooms.slot-sell-price");
-										int pr = Config.Config.getInt("minebay.user-rooms.room-sell-price");
-										e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Delete Room", "§8Price: §7"+(sl+pr), "§8Room ID: §7"+r.getRoomID())));
+									if(r.getRoomID() != 0){
+										if(r.getSoldItems().isEmpty()){
+											int sl = (r.getSlots() - Config.Config.getInt("minebay.user-rooms.default-slot-number"))*Config.Config.getInt("minebay.user-rooms.slot-sell-price");
+											int pr = Config.Config.getInt("minebay.user-rooms.room-sell-price");
+											e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Delete Room", "§8Price: §7"+(sl+pr), "§8Room ID: §7"+r.getRoomID())));
+										}else{
+											e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.not-empty")));
+										}
 									}else{
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.not-empty")));
+										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.is-default")));
+										e.getWhoClicked().closeInventory();
 									}
 								}else{
 									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.not-allowed")));
@@ -328,9 +350,9 @@ public class Events implements Listener{
 								int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(3)));
 								AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
 								if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
-									if(r.getSoldItemsBySeller(e.getWhoClicked().getName()).size() < Config.Config.getInt("minebay.user-rooms.offers-per-slot")){
+									if(r.getSoldItemsBySeller((Player) e.getWhoClicked()).size() < Config.Config.getInt("minebay.user-rooms.offers-per-slot")){
 										if(e.getWhoClicked().getItemInHand()!=null && !e.getWhoClicked().getItemInHand().getType().equals(Material.AIR)){
-											SellItem it = new SellItem(((Player)e.getWhoClicked()).getItemInHand(), r, e.getWhoClicked().getName(), Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(2))), r.getNewItemID());
+											SellItem it = new SellItem(((Player)e.getWhoClicked()).getItemInHand(), r, (Config.use_uuids?e.getWhoClicked().getUniqueId().toString():e.getWhoClicked().getName()), Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(2))), r.getNewItemID());
 											r.addSellItem(it);
 											((Player)e.getWhoClicked()).setItemInHand(new ItemStack(Material.AIR));
 											e.getWhoClicked().closeInventory();
@@ -390,10 +412,19 @@ public class Events implements Listener{
 						AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
 						SellItem it = r.getItemByID(id);
 						EconomyResponse re = Main.econ.withdrawPlayer((OfflinePlayer)e.getWhoClicked(), it.getPrice());
-						OfflinePlayer seller = Bukkit.getOfflinePlayer(it.getSeller());
+						OfflinePlayer seller;
+						if(Config.use_uuids) {
+							seller = Bukkit.getOfflinePlayer(UUID.fromString(it.getSeller()));
+						}else{
+							seller = Bukkit.getOfflinePlayer(it.getSeller());
+						}
 						OfflinePlayer owner = null;
 						if(r.getOwner()!=null){
-							owner = Bukkit.getOfflinePlayer(r.getOwner());
+							if(Config.use_uuids) {
+								owner = Bukkit.getOfflinePlayer(UUID.fromString(r.getOwner()));
+							}else {
+								owner = Bukkit.getOfflinePlayer(r.getOwner());
+							}
 						}
 						double sellerAm = round((double)((100-r.getTaxshare())*0.01)*it.getPrice(),5);
 						double ownerAm = round((double)(r.getTaxshare()*0.01)*it.getPrice(),5);
@@ -442,7 +473,7 @@ public class Events implements Listener{
 						EconomyResponse re = Main.econ.withdrawPlayer((Player)e.getWhoClicked(), Config.Config.getInt("minebay.user-rooms.room-price"));
 						if(re.transactionSuccess()){
 							CancelTask.cancelForPlayer((Player)e.getWhoClicked());
-							AuctionRoom r = AuctionRooms.createAuctionRoom(e.getWhoClicked().getName(), AuctionRooms.getNewRoomID());
+							AuctionRoom r = AuctionRooms.createAuctionRoom((Player) e.getWhoClicked(), AuctionRooms.getNewRoomID(), false);
 							MineBay.updateRoomSelection();
 							e.getWhoClicked().openInventory(r.getSettingsMenu());
 							e.getWhoClicked().sendMessage(Config.replaceForAuctionRoom(Config.simpleReplace(Config.Config.getString("minebay.info.room-created")), r));
@@ -497,9 +528,8 @@ public class Events implements Listener{
 							try{
 								int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(0).getItemMeta().getLore().get(1)));
 								AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-								int sl = (r.getSlots() - Config.Config.getInt("minebay.user-rooms.default-slot-number"))*Config.Config.getInt("minebay.user-rooms.slot-sell-price");
-								int pr = Config.Config.getInt("minebay.user-rooms.room-sell-price");
-								EconomyResponse re = Main.econ.depositPlayer((Player)e.getWhoClicked(), sl+pr);
+								int worth = r.getWorth();
+								EconomyResponse re = Main.econ.depositPlayer((Player)e.getWhoClicked(), worth);
 								if(re.transactionSuccess()){
 									AuctionRooms.deleteAuctionRoom(roomID);
 									for(Player p : Bukkit.getOnlinePlayers()){
@@ -513,7 +543,7 @@ public class Events implements Listener{
 									}
 									MineBay.updateRoomSelection();
 									e.getWhoClicked().closeInventory();
-									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.success")).replace("%price%", ""+(sl+pr)));
+									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.success")).replace("%price%", ""+worth));
 								}else{
 									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell-room.error")).replace("%error%", re.errorMessage));
 								}
@@ -536,21 +566,27 @@ public class Events implements Listener{
 					AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
 					if(name.equals("§8Drop item here")){
 						if(e.getCursor()!=null && !e.getCursor().getType().equals(Material.AIR)){
-							EconomyResponse re = Main.econ.withdrawPlayer((Player)e.getWhoClicked(), Config.Config.getInt("minebay.user-rooms.custom-icon-price"));
+							int price = r.isDefaultRoom()?0:Config.Config.getInt("minebay.user-rooms.custom-icon-price");
+							EconomyResponse re = Main.econ.withdrawPlayer((Player)e.getWhoClicked(), price);
 							if(re.transactionSuccess()){
 								r.setIcon(e.getCursor());
 								r.saveAllSettings();
 								r.updateSettings();
 								MineBay.updateRoomSelection();
+								if(!Config.Config.getBoolean("minebay.general.user-rooms-settings.change-icon-remove-item")){
+									Tools.addItem((Player) e.getWhoClicked(), e.getCursor());
+								}
 								e.setCursor(new ItemStack(Material.AIR));
 								e.setCancelled(true);
 								e.getWhoClicked().closeInventory();
 								e.getWhoClicked().openInventory(r.getSettingsMenu());
-								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.buy-icon.success")).replace("%type%", r.getIcon().getType().name().toLowerCase().replace("_", " ")).replace("%price%", ""+Config.Config.getInt("minebay.user-rooms.custom-icon-price")));
+								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.buy-icon.success")).replace("%type%", r.getIcon().getType().name().toLowerCase().replace("_", " ")).replace("%price%", ""+price));
 							}else{
 								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.buy-icon.error")).replace("%error%", re.errorMessage));
 							}
 						}
+					}else if(name.equalsIgnoreCase("§6Back")){
+						e.getWhoClicked().openInventory(r.getBlockSelectionInv());
 					}
 				}
 			}else if(e.getClickedInventory()!=null && !e.getClickedInventory().getName().equals(Config.simpleReplace(Config.Config.getString("minebay.prefix"))+" §8Custom icon")){
@@ -580,6 +616,20 @@ public class Events implements Listener{
 				e.getPlayer().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.error.name-too-long")));
 			}
 			e.setCancelled(true);
+		}else if(changeDescription.containsKey(e.getPlayer())) {
+			String nName = e.getMessage();
+			int room = changeDescription.get(e.getPlayer());
+			changeDescription.remove(e.getPlayer());
+			AuctionRoom r = AuctionRooms.getAuctionRoomByID(room);
+			if(MineBay.hasPermissionForColoredDescriptions(e.getPlayer())){
+				nName = ChatColor.translateAlternateColorCodes('&', nName);
+			}
+			r.setDescription(nName);
+			r.saveAllSettings();
+			r.updateSettings();
+			MineBay.updateRoomSelection();
+			e.getPlayer().sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.newdescription-applied")).replace("%newdescription%", nName));
+			e.setCancelled(true);
 		}else if(sellItem.containsKey(e.getPlayer())){
 			String price = e.getMessage();
 			try{
@@ -588,7 +638,7 @@ public class Events implements Listener{
 				int roomID = (int) objs[0];
 				ItemStack item = (ItemStack) objs[1];
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-				SellItem it = new SellItem(item, r, e.getPlayer().getName(), pr, r.getNewItemID());
+				SellItem it = new SellItem(item, r, (Config.use_uuids?e.getPlayer().getUniqueId().toString():e.getPlayer().getName()), pr, r.getNewItemID());
 				r.addSellItem(it);
 				e.getPlayer().sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.sell.success")), it, r));
 				sellItem.remove(e.getPlayer());
@@ -604,6 +654,18 @@ public class Events implements Listener{
 		if(e.getPlayer().hasPermission("minebay.notify-update")){
 			if(Config.Config.getBoolean("minebay.general.enable-update-check") && Config.Config.getBoolean("minebay.general.update-check-on-join")){
 				UpdateChecker.checkForUpdate(e.getPlayer());
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onCMD(PlayerCommandPreprocessEvent e) {
+		String[] spl = e.getMessage().split(" ");
+		for(String a : Config.Config.getStringList("minebay.general.command-aliases")) {
+			if(spl[0].equalsIgnoreCase(a)) {
+				e.getPlayer().chat("/minebay"+e.getMessage().substring(a.length()));
+				e.setCancelled(true);
+				return;
 			}
 		}
 	}

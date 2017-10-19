@@ -98,7 +98,7 @@ public class MineBay {
 			ItemMeta gMeta = gPane.getItemMeta();
 			gMeta.setDisplayName("§0");
 			gPane.setItemMeta(gMeta);
-			for(int i = 5*9+1; i < 6*9-4; i++){
+			for(int i = 5*9; i < 6*9-4; i++){
 				inv.setItem(i, gPane);
 			}
 			ItemStack gPane1 = Tools.createItem(Tools.arrowLeft(), "§7Previous page");
@@ -208,6 +208,21 @@ public class MineBay {
 			for(String perm : Config.Config.getStringList("room-perms")){
 				if(p.hasPermission(perm)){
 					if(Config.Config.getBoolean("room-perm."+perm+".allow-colored-names")){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static boolean hasPermissionForColoredDescriptions(Player p){
+		if(p.hasPermission("minebay.user-rooms.use-colored-descriptions")){
+			return true;
+		}else{
+			for(String perm : Config.Config.getStringList("room-perms")){
+				if(p.hasPermission(perm)){
+					if(Config.Config.getBoolean("room-perm."+perm+".allow-colored-descriptions")){
 						return true;
 					}
 				}

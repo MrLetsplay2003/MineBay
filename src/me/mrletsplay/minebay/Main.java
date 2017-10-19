@@ -20,11 +20,12 @@ public class Main extends JavaPlugin{
 	public static Economy econ;
 	public static Plugin pl;
 	
-	public static final String PLUGIN_VERSION = "1.2.1";
+	public static String PLUGIN_VERSION;
 	
 	@Override
 	public void onEnable() {
 		pl = this;
+		PLUGIN_VERSION = getDescription().getVersion();
 		initConfig();
 		Bukkit.getPluginManager().registerEvents(new Events(), this);
 		getCommand("minebay").setTabCompleter(new MineBayTabCompleter());
@@ -34,16 +35,11 @@ public class Main extends JavaPlugin{
 		}else{
 			getLogger().info("Enabled");
 		}
-		if(!AuctionRooms.getAuctionRoomIDs().contains(0) || Config.Config.getBoolean("minebay.default-auction-room.applySettings")){
+		if(!AuctionRooms.getAuctionRoomIDs().contains(0)){
 			System.out.println("Creating default room...");
-			AuctionRoom defRoom = AuctionRooms.createAuctionRoom(null, 0);
-			defRoom.setSlots(Config.Config.getInt("minebay.default-auction-room.slots"));
-			defRoom.setTaxshare(Config.Config.getInt("minebay.default-auction-room.taxshare"));
-			defRoom.setName(Config.Config.getString("minebay.default-auction-room.name"));
-			defRoom.setIcon(new ItemStack(Material.getMaterial(Config.Config.getString("minebay.default-auction-room.icon-material")), 1, (short) Config.Config.getInt("minebay.default-auction-room.icon-material-damage")));
-			defRoom.saveAllSettings();
-			Config.Config.set("minebay.default-auction-room.applySettings", false);
-			Config.save();
+			AuctionRoom r = AuctionRooms.createAuctionRoom(null, 0, true);
+			r.setSlots(-1);
+			r.saveAllSettings();
 			System.out.println("Created!");
 		}
 		if(Config.Config.getBoolean("minebay.general.enable-update-check")){
@@ -65,14 +61,12 @@ public class Main extends JavaPlugin{
 		getLogger().info("Disabled");
 	}
 	
-	private boolean setupEconomy()
-    {
-        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyProvider != null) {
-            econ = economyProvider.getProvider();
-        }
-
-        return (econ != null);
+	private boolean setupEconomy() {
+		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+		if (economyProvider != null) {
+			econ = economyProvider.getProvider();
+		}
+		return (econ != null);
     }
 	
 	private void initConfig(){
@@ -82,7 +76,7 @@ public class Main extends JavaPlugin{
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(label.equalsIgnoreCase("minebay")){
+		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;
 				if(args.length>=1){
@@ -125,7 +119,7 @@ public class Main extends JavaPlugin{
 										}else{
 											CancelTask.cancelForPlayer(p);
 											AuctionRoom main = MineBay.getMainAuctionRoom();
-											SellItem it = new SellItem(p.getItemInHand(), main, p.getName(), price, main.getNewItemID());
+											SellItem it = new SellItem(p.getItemInHand(), main, (Config.use_uuids?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
 											main.addSellItem(it);
 											p.setItemInHand(new ItemStack(Material.AIR));
 											p.sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.sell.success")), it, main));
@@ -155,6 +149,17 @@ public class Main extends JavaPlugin{
 							}
 						}else{
 							p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.user-rooms-disabled")));
+						}
+					}else if(args[0].equalsIgnoreCase("createdefault")){
+						if(p.hasPermission("minebay.default-rooms.create")){
+							AuctionRoom r = AuctionRooms.createAuctionRoom(null, AuctionRooms.getNewRoomID(), true);
+							r.setSlots(-1);
+							r.saveAllSettings();
+							MineBay.updateRoomSelection();
+							p.openInventory(r.getSettingsMenu());
+							p.sendMessage(Config.replaceForAuctionRoom(Config.simpleReplace(Config.Config.getString("minebay.info.room-created")), r));
+						}else{
+							sendCommandHelp(p);
 						}
 					}else if(args[0].equalsIgnoreCase("version")){
 						if(p.hasPermission("minebay.version")){
@@ -188,6 +193,9 @@ public class Main extends JavaPlugin{
 		p.sendMessage("§7/minebay create §8- Create an auction room");
 		if(p.hasPermission("minebay.reload")){
 			p.sendMessage("§7/minebay reload §8- Reload the MineBay config");
+		}
+		if(p.hasPermission("minebay.default-rooms.create")){
+			p.sendMessage("§7/minebay createdefault §8- Create a default auction room (Auction room with no owner)");
 		}
 		if(p.hasPermission("minebay.version")){
 			p.sendMessage("§7/minebay version §8- Shows the MineBay version and checks for an update (if enabled)");
