@@ -16,8 +16,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import com.google.common.io.Files;
 
 public class AuctionRoom {
 
@@ -32,10 +35,25 @@ public class AuctionRoom {
 	private File roomFile;
 	private FileConfiguration roomConfig;
 	
+	@SuppressWarnings("deprecation")
 	public AuctionRoom(int id) {
 		roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
 		roomConfig = YamlConfiguration.loadConfiguration(roomFile);
 		this.owner = roomConfig.getString("owner");
+		boolean s = false;
+		if(this.owner!=null) {
+			if(Tools.isUUID(this.owner)) {
+				if(!Config.use_uuids) {
+					Main.pl.getLogger().info("Converting room "+id+"'s owner uuid to name...");
+					this.owner = Bukkit.getPlayer(UUID.fromString(owner)).getName();
+					s = true;
+				}
+			}else if(Config.use_uuids) {
+				Main.pl.getLogger().info("Converting room "+id+"'s owner name to uuid...");
+				owner = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+				s = true;
+			}
+		}
 		this.taxshare = roomConfig.getInt("tax-share");
 		this.slots = roomConfig.getInt("slots");
 		this.name = roomConfig.getString("name");
@@ -43,6 +61,7 @@ public class AuctionRoom {
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.roomID = id;
+		if(s) saveAllSettings();
 	}
 	
 	public void setDefaultSettings(String owner, boolean isDefaultRoom){
@@ -291,7 +310,7 @@ public class AuctionRoom {
 		l1.add("");
 		l1.add("§7Description");
 		if(description!=null) {
-			for(String s : WordUtils.wrap("§8Currently: §7"+description, 50).split(System.lineSeparator())) {
+			for(String s : WordUtils.wrap("§8Currently: §7"+description, 50).split(System.getProperty("line.separator"))) {
 				l1.add("§7"+s);
 			}
 		}else {
@@ -374,6 +393,7 @@ public class AuctionRoom {
 	}
 	
 	public ItemStack getSelectItemStack(Player p){
+		if(icon==null) return null;
 		ItemStack newItem = icon.clone();
 		ItemMeta im = newItem.getItemMeta();
 		im.setDisplayName("§7"+name);
@@ -399,6 +419,7 @@ public class AuctionRoom {
 			lore.add("§7Right-click for settings");
 		}
 		im.setLore(lore);
+		im.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS);
 		newItem.setItemMeta(im);
 		return newItem;
 	}
@@ -476,6 +497,21 @@ public class AuctionRoom {
 	
 	public boolean isDefaultRoom() {
 		return isDefaultRoom;
+	}
+	
+	public boolean backupConfig(File to) {
+		try {
+			if(!roomFile.exists()) return false;
+			if(!to.exists()) {
+				to.getParentFile().mkdirs();
+				to.createNewFile();
+			}
+			Files.copy(roomFile, to);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 }

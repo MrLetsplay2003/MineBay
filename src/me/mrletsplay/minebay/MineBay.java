@@ -1,5 +1,6 @@
 package me.mrletsplay.minebay;
 
+import java.io.File;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -56,7 +57,21 @@ public class MineBay {
 			int end = (aRooms.size()<=start+5*9)?aRooms.size():start+5*9;
 			for(int i = start; i < end; i++){
 				AuctionRoom it = aRooms.get(i);
-				inv.setItem(i-start, it.getSelectItemStack(p));
+				ItemStack i2 = it.getSelectItemStack(p);
+				if(i2==null) {
+					Main.pl.getLogger().warning("Room "+it.getRoomID()+" seems to be misconfigured!");
+					boolean b = it.backupConfig(new File("plugins/MineBay/AuctionRooms", it.getRoomID()+"-old.yml"));
+					if(it.getOwner()!=null) {
+						it.setDefaultSettings(it.getOwner(), it.isDefaultRoom());
+						Main.pl.getLogger().warning("Its old config has been renamed to "+it.getRoomID()+"-old.yml and the default settings have been reapplied to prevent further errors");
+					}else {
+						AuctionRooms.deleteAuctionRoom(it.getRoomID());
+						Main.pl.getLogger().warning("Failed to fix errors! The room has been deleted to prevent further errors "+(b?"(Old config has been renamed to "+it.getRoomID()+"-old.yml)":"(Failed to backup old config file)"));
+					}
+					inv.setItem(i-start, Tools.createItem(Material.BARRIER, 1, 0, "§c?", "§cFailed to load room"));
+				}else {
+					inv.setItem(i-start, it.getSelectItemStack(p));
+				}
 			}
 			ItemStack gPane = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
 			for(int i = 5*9; i < 6*9-4; i++){
