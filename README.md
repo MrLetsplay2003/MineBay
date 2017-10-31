@@ -1,2 +1,2 @@
 # MineBay
-# This source code is currently outdated and may not work
+# Up to date! (v1.3)
