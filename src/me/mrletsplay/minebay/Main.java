@@ -1,5 +1,7 @@
 package me.mrletsplay.minebay;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.mrletsplay.minebay.CustomConfig.InvalidConfigException;
 import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin{
@@ -21,6 +24,12 @@ public class Main extends JavaPlugin{
 	public static Plugin pl;
 	
 	public static String PLUGIN_VERSION;
+	
+	/**
+	 * Sell button
+	 * Open room cmd
+	 * Edit name fix
+	 */
 	
 	@Override
 	public void onEnable() {
@@ -36,13 +45,13 @@ public class Main extends JavaPlugin{
 			getLogger().info("Enabled");
 		}
 		if(!AuctionRooms.getAuctionRoomIDs().contains(0)){
-			System.out.println("Creating default room...");
+			getLogger().info("Creating default room...");
 			AuctionRoom r = AuctionRooms.createAuctionRoom(null, 0, true);
 			r.setSlots(-1);
 			r.saveAllSettings();
-			System.out.println("Created!");
+			getLogger().info("Created!");
 		}
-		if(Config.Config.getBoolean("minebay.general.enable-update-check")){
+		if(Config.config.getBoolean("minebay.general.enable-update-check")){
 			getLogger().info("Checking for update...");
 			List<Player> pls = new ArrayList<>();
 			for(Player pl : Bukkit.getOnlinePlayers()){
@@ -82,7 +91,7 @@ public class Main extends JavaPlugin{
 				if(args.length>=1){
 					if(args[0].equalsIgnoreCase("open")){
 						if(args.length == 1){
-							if(Config.Config.getBoolean("minebay.general.enable-user-rooms")){
+							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 								p.openInventory(MineBay.getRoomSelectionMenu(0, "all", p));
 								CancelTask.cancelForPlayer(p);
 							}else{
@@ -95,25 +104,28 @@ public class Main extends JavaPlugin{
 					}else if(args[0].equalsIgnoreCase("reload")){
 						if(p.hasPermission("minebay.reload")){
 							if(args.length == 1){
-								reloadConfig();
-								Config.Config = getConfig();
+								try {
+									Config.config.reloadConfig(false);
+								} catch (InvalidConfigException | IOException e) {
+									e.printStackTrace();
+								}
 								Bukkit.getPluginManager().disablePlugin(this);
 								Bukkit.getPluginManager().enablePlugin(this);
-								p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.reload-complete")));
+								p.sendMessage(Config.getMessage("minebay.info.reload-complete"));
 							}else{
 								sendCommandHelp(p);
 							}
 						}else{
-							p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.reload-no-permission")));
+							p.sendMessage(Config.getMessage("minebay.info.reload-no-permission"));
 						}
 						return true;
 					}else if(args[0].equalsIgnoreCase("sell")){
 						if(args.length==2){
 							try{
-								int price = Integer.parseInt(args[1]);
-								if(price > 0){
+								BigDecimal price = new BigDecimal(args[1]);
+								if(price.compareTo(new BigDecimal("0")) == 1){ // > 0
 									if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
-										if(Config.Config.getBoolean("minebay.general.enable-user-rooms")){
+										if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 											CancelTask.cancelForPlayer(p);
 											p.openInventory(MineBay.getSellRoomSelectionMenu(0, "all", price));
 										}else{
@@ -122,17 +134,17 @@ public class Main extends JavaPlugin{
 											SellItem it = new SellItem(p.getItemInHand(), main, (Config.use_uuids?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
 											main.addSellItem(it);
 											p.setItemInHand(new ItemStack(Material.AIR));
-											p.sendMessage(Config.replaceForSellItem(Config.simpleReplace(Config.Config.getString("minebay.info.sell.success")), it, main));
+											p.sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, main));
 										}
 										return true;
 									}else{
-										p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell.error.noitem")));
+										p.sendMessage(Config.getMessage("minebay.info.sell.error.noitem"));
 										return true;
 									}
 								}else{
-									p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.sell.error.toocheap")));
+									p.sendMessage(Config.getMessage("minebay.info.sell.error.toocheap"));
 								}
-							}catch(Exception e){
+							}catch(NumberFormatException e){
 								sendCommandHelp(p);
 								return true;
 							}
@@ -141,14 +153,14 @@ public class Main extends JavaPlugin{
 							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("create")){
-						if(Config.Config.getBoolean("minebay.general.enable-user-rooms") && (Config.Config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
+						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(p)){
-								p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.GRASS, 1, 0, "§8Buy Auction Room", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.room-price"))));
+								p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.GRASS, 1, 0, "§8Buy Auction Room", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.room-price"))));
 							}else{
-								p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.room-create.error.too-many-rooms")));
+								p.sendMessage(Config.getMessage("minebay.info.room-create.error.too-many-rooms"));
 							}
 						}else{
-							p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.info.user-rooms-disabled")));
+							p.sendMessage(Config.getMessage("minebay.info.user-rooms-disabled"));
 						}
 					}else if(args[0].equalsIgnoreCase("createdefault")){
 						if(p.hasPermission("minebay.default-rooms.create")){
@@ -157,14 +169,14 @@ public class Main extends JavaPlugin{
 							r.saveAllSettings();
 							MineBay.updateRoomSelection();
 							p.openInventory(r.getSettingsMenu());
-							p.sendMessage(Config.replaceForAuctionRoom(Config.simpleReplace(Config.Config.getString("minebay.info.room-created")), r));
+							p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.room-created"), r));
 						}else{
 							sendCommandHelp(p);
 						}
 					}else if(args[0].equalsIgnoreCase("version")){
 						if(p.hasPermission("minebay.version")){
 							p.sendMessage("Current MineBay version: §7"+PLUGIN_VERSION);
-							if(Config.Config.getBoolean("minebay.general.update-check-on-command")){
+							if(Config.config.getBoolean("minebay.general.update-check-on-command")){
 								UpdateChecker.checkForUpdate(p);
 							}
 						}else{
@@ -187,7 +199,7 @@ public class Main extends JavaPlugin{
 	}
 
 	private void sendCommandHelp(Player p) {
-		p.sendMessage(Config.simpleReplace(Config.Config.getString("minebay.prefix"))+" §cHelp");
+		p.sendMessage(Config.prefix+" §cHelp");
 		p.sendMessage("§7/minebay open §8- Opens the MineBay auction room selection menu");
 		p.sendMessage("§7/minebay sell <Price> §8- Put an item for sale on MineBay");
 		p.sendMessage("§7/minebay create §8- Create an auction room");

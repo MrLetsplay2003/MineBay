@@ -2,6 +2,7 @@ package me.mrletsplay.minebay;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -66,9 +67,9 @@ public class AuctionRoom {
 	
 	public void setDefaultSettings(String owner, boolean isDefaultRoom){
 		this.owner = owner;
-		this.taxshare = Config.Config.getInt("minebay.user-rooms.default-tax-percent");
-		this.slots = Config.Config.getInt("minebay.user-rooms.default-slot-number");
-		this.icon = new ItemStack(Material.getMaterial(Config.Config.getString("minebay.user-rooms.default-icon-material")));
+		this.taxshare = Config.config.getInt("minebay.user-rooms.default-tax-percent");
+		this.slots = Config.config.getInt("minebay.user-rooms.default-slot-number");
+		this.icon = new ItemStack(Material.getMaterial(Config.config.getString("minebay.user-rooms.default-icon-material")));
 		this.isDefaultRoom = isDefaultRoom;
 		if(owner!=null){
 			this.name = getOwnerName()+"'s Auction Room";
@@ -236,7 +237,7 @@ public class AuctionRoom {
 		if(getItemIDs().contains(id)){
 			ItemStack item = roomConfig.getItemStack("sold-items.item."+id+".item");
 			String seller = roomConfig.getString("sold-items.item."+id+".seller");
-			int price = roomConfig.getInt("sold-items.item."+id+".price");
+			BigDecimal price = new BigDecimal(roomConfig.getString("sold-items.item."+id+".price"));
 			return new SellItem(item, AuctionRooms.getAuctionRoomByID(roomID), seller, price, id);
 		}else{
 			return null;
@@ -247,7 +248,7 @@ public class AuctionRoom {
 		List<SellItem> sItems = getSoldItems();
 		int pages = sItems.size()/9/5;
 		if(pages >= page && page >= 0){
-			Inventory inv = Bukkit.createInventory(null, 6*9, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")));
+			Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
 			int start = page*5*9;
 			int end = (sItems.size()<=start+5*9)?sItems.size():start+5*9;
 			for(int i = start; i < end; i++){
@@ -289,7 +290,7 @@ public class AuctionRoom {
 	}
 	
 	public Inventory getSettingsMenu(){
-		Inventory inv = Bukkit.createInventory(null, 6*9, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")));
+		Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
 		ItemStack gPane = new ItemStack(Material.STAINED_GLASS_PANE);
 		ItemMeta gMeta = gPane.getItemMeta();
 		gMeta.setDisplayName("§0");
@@ -332,11 +333,11 @@ public class AuctionRoom {
 		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax", "§8Left click to increase tax by 1%", "§8Shift left-click to increase tax by 10%"));
 		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax", "§8Left click to decrease tax by 1%", "§8Shift left-click to decrease tax by 10%"));
 		
-		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
 		inv.setItem(45, back);
 		inv.setItem(46, gPane3);
 		
-		inv.setItem(53, Tools.createItem(Material.STAINED_CLAY, 1, 14, "§cDelete Room"));
+		inv.setItem(53, Tools.createItem(Material.STAINED_CLAY, 1, 14, Config.getMessage("minebay.gui.room-settings.delete")));
 		return inv;
 	}
 	
@@ -425,7 +426,7 @@ public class AuctionRoom {
 	}
 	
 	public Inventory getBlockSelectionInv(){
-		Inventory inv = Bukkit.createInventory(null, 6*9, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")));
+		Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
 		ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
 		ItemMeta gMeta3 = gPane3.getItemMeta();
 		gMeta3.setDisplayName("§8Change Block");
@@ -464,13 +465,13 @@ public class AuctionRoom {
 		inv.setItem(45, back);
 		inv.setItem(46, gPane3);
 		
-		inv.setItem(6*9-1, Tools.createItem(Tools.letterC(DyeColor.ORANGE), "§6Custom block/item", "§8Price: §7"+Config.Config.getInt("minebay.user-rooms.custom-icon-price")));
+		inv.setItem(6*9-1, Tools.createItem(Tools.letterC(DyeColor.ORANGE), "§6Custom block/item", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.custom-icon-price")));
 		
 		return inv;
 	}
 	
 	public Inventory getIconChangeMenu(){
-		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, Config.simpleReplace(me.mrletsplay.minebay.Config.Config.getString("minebay.prefix")+" §8Custom icon"));
+		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, Config.prefix+" §8Custom icon");
 		
 		ItemStack it = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
 		for(int i = 0; i < inv.getSize(); i++){
@@ -489,8 +490,8 @@ public class AuctionRoom {
 		if(isDefaultRoom){
 			return 0;
 		}else{
-			int sl = (slots - Config.Config.getInt("minebay.user-rooms.default-slot-number"))*Config.Config.getInt("minebay.user-rooms.slot-sell-price");
-			int pr = Config.Config.getInt("minebay.user-rooms.room-sell-price");
+			int sl = (slots - Config.config.getInt("minebay.user-rooms.default-slot-number"))*Config.config.getInt("minebay.user-rooms.slot-sell-price");
+			int pr = Config.config.getInt("minebay.user-rooms.room-sell-price");
 			return sl+pr;
 		}
 	}

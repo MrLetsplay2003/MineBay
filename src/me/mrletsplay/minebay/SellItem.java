@@ -1,5 +1,6 @@
 package me.mrletsplay.minebay;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,11 +17,11 @@ public class SellItem{
 
 	private String seller;
 	private ItemStack item;
-	private int price;
+	private BigDecimal price;
 	private int id;
 	private AuctionRoom ar;
 	
-	public SellItem(ItemStack item, AuctionRoom sellRoom, String seller, int price, int id) {
+	public SellItem(ItemStack item, AuctionRoom sellRoom, String seller, BigDecimal price, int id) {
 		this.seller = seller;
 		this.item = item;
 		this.price = price;
@@ -52,7 +53,7 @@ public class SellItem{
 		return item;
 	}
 	
-	public int getPrice() {
+	public BigDecimal getPrice() {
 		return price;
 	}
 	
