@@ -7,13 +7,14 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 
-import me.mrletsplay.minebay.CustomConfig.ConfigSaveProperty;
-import me.mrletsplay.minebay.CustomConfig.InvalidConfigException;
+import me.mrletsplay.mrcore.main.CustomConfig;
+import me.mrletsplay.mrcore.main.CustomConfig.ConfigSaveProperty;
+import me.mrletsplay.mrcore.main.CustomConfig.InvalidConfigException;
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml")).loadConfig_Safe(),
+	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), false, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfig_Safe(),
 							   messages;
 	
 	public static boolean use_uuids;
@@ -22,7 +23,7 @@ public class Config {
 	
 	public static void saveConfig(){
 		try{
-			config.saveConfig(ConfigSaveProperty.SORT_ALPHABETICALLY);
+			config.saveConfig();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -30,7 +31,7 @@ public class Config {
 	
 	public static void saveMessages(){
 		try{
-			messages.saveConfig(ConfigSaveProperty.SORT_ALPHABETICALLY);
+			messages.saveConfig();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -90,7 +91,7 @@ public class Config {
 	private static CustomConfig loadMessageConfig(File f) {
 		CustomConfig cc;
 		try {
-			cc = new CustomConfig(f).loadConfig();
+			cc = new CustomConfig(f, false).loadConfig();
 			cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount% %type% §afrom §6%seller% §afor §6%price% %currency%");
 			cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
 			cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount% %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
