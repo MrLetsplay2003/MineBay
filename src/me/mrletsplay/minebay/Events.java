@@ -155,7 +155,7 @@ public class Events implements Listener{
 							int slot = e.getSlot();
 							int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
 							AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-							if(name.equals("§7Change Name")){
+							if(slot == 14){
 								Events.changeName.put((Player)e.getWhoClicked(), roomID);
 								int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
 								if(maxTime>0){
@@ -163,7 +163,7 @@ public class Events implements Listener{
 								}
 								e.getWhoClicked().closeInventory();
 								e.getWhoClicked().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.newname")));
-							}else if(name.equals("§7Change Description")){
+							}else if(slot == 15){
 								Events.changeDescription.put((Player)e.getWhoClicked(), roomID);
 								int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
 								if(maxTime>0){
@@ -171,12 +171,12 @@ public class Events implements Listener{
 								}
 								e.getWhoClicked().closeInventory();
 								e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.newdescription"));
-							}else if(name.equals("§7Change Block")){
+							}else if(slot == 23){
 								MineBay.changeInv(e.getInventory(), r.getBlockSelectionInv());
 								r.saveAllSettings();
 								r.updateSettings();
 								MineBay.updateRoomSelection();
-							}else if(name.equals("§7Buy slot/s")){
+							}else if(slot == 32){
 								if(!r.isDefaultRoom()){
 									if(e.getClick().equals(ClickType.LEFT)){
 										if(r.getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
@@ -196,7 +196,7 @@ public class Events implements Listener{
 								}else{
 									e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.slot-buy.is-default"));
 								}
-							}else if(name.equals("§7Sell slot/s")){
+							}else if(slot == 33){
 								if(!r.isDefaultRoom()){
 									if(Config.config.getBoolean("minebay.general.allow-slot-selling")){
 										if(e.getClick().equals(ClickType.LEFT)){
@@ -231,7 +231,7 @@ public class Events implements Listener{
 								}else{
 									e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.slot-sell.is-default"));
 								}
-							}else if(name.equals("§7Increase Tax")){
+							}else if(slot == 41){
 								if(e.getClick().equals(ClickType.LEFT)){
 									if(r.getTaxshare()<Config.config.getInt("minebay.user-rooms.max-tax-percent")){
 										r.setTaxshare(r.getTaxshare()+1);
@@ -265,7 +265,7 @@ public class Events implements Listener{
 										e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.tax.toohigh"));
 									}
 								}
-							}else if(name.equals("§7Decrease Tax")){
+							}else if(slot == 42){
 								if(e.getClick().equals(ClickType.LEFT)){
 									if(r.getTaxshare()>0){
 										r.setTaxshare(r.getTaxshare()-1);
@@ -299,7 +299,7 @@ public class Events implements Listener{
 										e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.tax.toolow"));
 									}
 								}
-							}else if(name.equals("§cDelete Room")){
+							}else if(slot == 53){
 								if(Config.config.getBoolean("minebay.general.allow-room-selling")){
 									if(r.getRoomID() != 0){
 										if(r.getSoldItems().isEmpty()){
@@ -316,7 +316,7 @@ public class Events implements Listener{
 								}else{
 									e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.sell-room.not-allowed"));
 								}
-							}else if(name.equals("§6Back")){
+							}else if(slot == 45){
 								Inventory newInv = MineBay.getRoomSelectionMenu(0, "all", (Player)e.getWhoClicked());
 								MineBay.changeInv(e.getInventory(), newInv);
 								e.setCancelled(true);
