@@ -264,11 +264,11 @@ public class AuctionRoom {
 			}
 			ItemStack gPane1 = Tools.arrowLeft();
 			ItemMeta gMeta1 = gPane1.getItemMeta();
-			gMeta1.setDisplayName("§7Previous page");
+			gMeta1.setDisplayName(Config.getMessage("minebay.gui.misc.previous-page"));
 			gPane1.setItemMeta(gMeta1);
 			ItemStack gPane2 = Tools.arrowRight();
 			ItemMeta gMeta2 = gPane2.getItemMeta();
-			gMeta2.setDisplayName("§7Next page");
+			gMeta2.setDisplayName(Config.getMessage("minebay.gui.misc.next-page"));
 			gPane2.setItemMeta(gMeta2);
 			ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
 			ItemMeta gMeta3 = gPane3.getItemMeta();
@@ -278,7 +278,7 @@ public class AuctionRoom {
 			l.add("§7Room ID: "+roomID);
 			gMeta3.setLore(l);
 			gPane3.setItemMeta(gMeta3);
-			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
+			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
 			inv.setItem(45, back);
 			inv.setItem(46, gPane3);
 			inv.setItem(52, gPane1);

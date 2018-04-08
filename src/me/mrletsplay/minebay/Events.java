@@ -61,21 +61,22 @@ public class Events implements Listener{
 						if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta()){
 							if(e.getCurrentItem().getItemMeta().hasDisplayName()){
 //								String name = e.getCurrentItem().getItemMeta().getDisplayName();
-								if(name.equals("§7Previous page")){
+								int slot = e.getSlot();
+								if(slot == 52){
 									Inventory newInv = r.getMineBayInv(page-1, (Player)e.getWhoClicked());
 									if(newInv!=null){
 										MineBay.changeInv(e.getInventory(), newInv);
 									}
 									e.setCancelled(true);
 									return;
-								}else if(name.equals("§7Next page")){
+								}else if(slot == 53){
 									Inventory newInv = r.getMineBayInv(page+1, (Player)e.getWhoClicked());
 									if(newInv!=null){
 										MineBay.changeInv(e.getInventory(), newInv);
 									}
 									e.setCancelled(true);
 									return;
-								}else if(name.equals("§6Back")){
+								}else if(slot == 45){
 									Inventory newInv = MineBay.getRoomSelectionMenu(0, "all", (Player)e.getWhoClicked());
 									MineBay.changeInv(e.getInventory(), newInv);
 									e.setCancelled(true);
@@ -151,6 +152,7 @@ public class Events implements Listener{
 					}else if(mode.equals("§8Settings")){
 						if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta() && e.getCurrentItem().getItemMeta().hasDisplayName()){
 //							String name = e.getCurrentItem().getItemMeta().getDisplayName();
+							int slot = e.getSlot();
 							int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
 							AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
 							if(name.equals("§7Change Name")){
