@@ -16,7 +16,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), false, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfig_Safe(),
+	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), false, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
 							   messages;
 	
 	public static boolean use_uuids;
@@ -193,7 +193,8 @@ public class Config {
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
 			
-			cc.
+			cc.applyDefaults(true);
+			
 			return cc;
 		} catch (InvalidConfigException | IOException e) {
 			e.printStackTrace();

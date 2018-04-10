@@ -15,7 +15,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.mrletsplay.mrcore.main.CustomConfig.InvalidConfigException;
+import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin{
