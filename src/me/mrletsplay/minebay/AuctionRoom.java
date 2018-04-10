@@ -306,32 +306,40 @@ public class AuctionRoom {
 		gMeta3.setLore(l);
 		gPane3.setItemMeta(gMeta3);
 		
-		List<String> l1 = new ArrayList<>();
-		l1.add("§8Currently: §7"+name);
-		l1.add("");
-		l1.add("§7Description");
-		if(description!=null) {
-			for(String s : WordUtils.wrap("§8Currently: §7"+description, 50).split(System.getProperty("line.separator"))) {
-				l1.add("§7"+s);
+//		List<String> l1 = new ArrayList<>();
+//		l1.add("§8Currently: §7"+name);
+//		l1.add("");
+//		l1.add("§7Description");
+//		if(description!=null) {
+//			for(String s : WordUtils.wrap("§8Currently: §7"+description, 50).split(System.getProperty("line.separator"))) {
+//				l1.add("§7"+s);
+//			}
+//		}else {
+//			l1.add("§8Currently: §7none");
+//		}
+		List<String> l1 = Config.getMessageList("minebay.gui.room-settings.name-desc.name-lore", "name", name, "description", description);
+		String lbC = Config.getMessage("minebay.gui.room-settings.name-desc.name-lore-linebreak-color");
+		List<String> l1f = new ArrayList<>();
+		for(String s : l1) {
+			for(String s2 : WordUtils.wrap(s, 50).split(System.getProperty("line.separator"))) {
+				l1f.add(lbC+s2);
 			}
-		}else {
-			l1.add("§8Currently: §7none");
 		}
 		
-		inv.setItem(10, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Name", l1.toArray(new String[l1.size()])));
-		inv.setItem(14, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Name"));
-		inv.setItem(15, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Description"));
+		inv.setItem(10, Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.name-desc.name"), l1f.toArray(new String[l1f.size()])));
+		inv.setItem(14, Tools.createItem(Material.STAINED_CLAY, 1, 4, Config.getMessage("minebay.gui.room-settings.name-desc.change-name")));
+		inv.setItem(15, Tools.createItem(Material.STAINED_CLAY, 1, 4, Config.getMessage("minebay.gui.room-settings.name-desc.change-description")));
 		
-		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Block", "§8Currently: §7"+icon.getType().toString().toLowerCase().replace("_", " ")));
-		inv.setItem(23, Tools.createItem(Material.STAINED_CLAY, 1, 4, "§7Change Block"));
+		inv.setItem(19, Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.block.name"), Config.getMessageList("minebay.gui.room-settings.block.lore", "type", icon.getType().toString().toLowerCase().replace("_", " "))));
+		inv.setItem(23, Tools.createItem(Material.STAINED_CLAY, 1, 4, Config.getMessage("minebay.gui.room-settings.block-change.name")));
 		
-		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Slots", "§8Currently: §7"+slots));
-		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), "§7Buy slot/s", "§8Left click to buy 1 slot", "§8Shift-left click to buy 5 slots"));
-		inv.setItem(33, Tools.createItem(Tools.arrowRight(), "§7Sell slot/s", "§8Left click to sell 1 slot", "§8Shift-left click to sell 5 slots"));
+		inv.setItem(28, Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.slots.name"), Config.getMessageList("minebay.gui.room-settings.slots.lore", "slots", ""+slots)));
+		inv.setItem(32, Tools.createItem(Tools.arrowLeft(), Config.getMessage("minebay.gui.room-settings.slots-buy.name"), Config.getMessageList("minebay.gui.room-settings.slots-buy.lore")));
+		inv.setItem(33, Tools.createItem(Tools.arrowRight(), Config.getMessage("minebay.gui.room-settings.slots-sell.name"), Config.getMessageList("minebay.gui.room-settings.slots-sell.lore")));
 
-		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, "§7Tax", "§8Currently: §7"+taxshare+"%"));
-		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), "§7Increase Tax", "§8Left click to increase tax by 1%", "§8Shift left-click to increase tax by 10%"));
-		inv.setItem(42, Tools.createItem(Tools.arrowRight(), "§7Decrease Tax", "§8Left click to decrease tax by 1%", "§8Shift left-click to decrease tax by 10%"));
+		inv.setItem(37, Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.tax.name"), Config.getMessageList("minebay.gui.room-settings.tax.lore", "tax", ""+taxshare)));
+		inv.setItem(41, Tools.createItem(Tools.arrowLeft(), Config.getMessage("minebay.gui.room-settings.tax-increase.name"), Config.getMessageList("minebay.gui.room-settings.tax-increase.lore")));
+		inv.setItem(42, Tools.createItem(Tools.arrowRight(), Config.getMessage("minebay.gui.room-settings.tax-decrease.name"), Config.getMessageList("minebay.gui.room-settings.tax-decrease.lore")));
 		
 		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
 		inv.setItem(45, back);

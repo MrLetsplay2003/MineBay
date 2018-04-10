@@ -3,13 +3,15 @@ package me.mrletsplay.minebay;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 
-import me.mrletsplay.mrcore.main.CustomConfig;
-import me.mrletsplay.mrcore.main.CustomConfig.ConfigSaveProperty;
-import me.mrletsplay.mrcore.main.CustomConfig.InvalidConfigException;
+import me.mrletsplay.mrcore.config.CustomConfig;
+import me.mrletsplay.mrcore.config.CustomConfig.ConfigSaveProperty;
+import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
@@ -80,7 +82,6 @@ public class Config {
 		config.addDefault("room-perm.user.donator.max-rooms", 7);
 		config.addDefault("room-perm.user.donator.allow-colored-names", true);
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
-		
 		use_uuids = config.getBoolean("minebay.general.use-uuids")&&Bukkit.getOnlineMode();
 		saveConfig();
 		
@@ -152,30 +153,47 @@ public class Config {
 			cc.addDefault("minebay.gui.misc.back", "§cBack");
 			cc.addDefault("minebay.gui.room-settings.delete", "§cDelete Room");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
-			cc.addDefault("minebay.gui.room-settings.name-desc.change-name", "");
-			cc.addDefault("minebay.gui.room-settings.name-desc.current-name", "");
-			cc.addDefault("minebay.gui.room-settings.name-desc.change-description", "");
-			cc.addDefault("minebay.gui.room-settings.name-desc.current-description", "");
-			cc.addDefault("minebay.gui.room-settings.block.name", "");
-			cc.addDefault("minebay.gui.room-settings.block.current", "");
-			cc.addDefault("minebay.gui.room-settings.block.change", "");
-			cc.addDefault("minebay.gui.room-settings.slots.name", "");
-			cc.addDefault("minebay.gui.room-settings.slots.current", "");
-			cc.addDefault("minebay.gui.room-settings.slots.buy-1", "");
-			cc.addDefault("minebay.gui.room-settings.slots.buy-5", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
-			cc.addDefault("minebay.gui.room-settings.delete", "");
+			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
+																				  "§8Currently: §7%name%",
+																				  "§7Description",
+																				  "§8Currently: §7%description%"));
+			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore-linebreak-color", "§7");
+			cc.addDefault("minebay.gui.room-settings.name-desc.change-name", "§7Change Name");
+			cc.addDefault("minebay.gui.room-settings.name-desc.change-description", "§7Change Description");
+			cc.addDefault("minebay.gui.room-settings.block.name", "§7Block");
+			cc.addDefault("minebay.gui.room-settings.block.lore", Arrays.asList("§8Currently: §7%type%"));
+			cc.addDefault("minebay.gui.room-settings.block-change.name", "§7Change Block");
+			cc.addDefault("minebay.gui.room-settings.slots.name", "§7Slots");
+			cc.addDefault("minebay.gui.room-settings.slots.lore", Arrays.asList("§8Currently: §7%slots%"));
+			cc.addDefault("minebay.gui.room-settings.slots-buy.name", "§7Buy Slot/s");
+			cc.addDefault("minebay.gui.room-settings.slots-buy.lore", Arrays.asList(
+																			"§8Left click to buy 1 slot",
+																			"§8Shift-left click to buy 5 slots"));
+			cc.addDefault("minebay.gui.room-settings.slots-sell.name", "§7Sell slot/s");
+			cc.addDefault("minebay.gui.room-settings.slots-sell.lore", Arrays.asList(
+																			"§8Left click to sell 1 slot",
+																			"§8Shift-left click to sell 5 slots"));
+			cc.addDefault("minebay.gui.room-settings.tax.name", "§7Tax");
+			cc.addDefault("minebay.gui.room-settings.tax.lore", Arrays.asList("§8Currently: §7%tax%"));
+			cc.addDefault("minebay.gui.room-settings.tax-increase.name", "§7Increase Tax");
+			cc.addDefault("minebay.gui.room-settings.tax-increase.lore", Arrays.asList(
+																			"§8Left click to increase tax by 1%",
+																			"§8Shift-left click to increase tax by 10%"));
+			cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§8Decrease Tax");
+			cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
+																			"§8Left click to decrease tax by 1%",
+																			"§8Shift-left click to decrease tax by 10%"));
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+//			cc.addDefault("minebay.gui.room-settings.delete", "");
+			
+			cc.
 			return cc;
 		} catch (InvalidConfigException | IOException e) {
 			e.printStackTrace();
@@ -210,6 +228,19 @@ public class Config {
 			msg2 = msg2.replace("%"+params[i]+"%", params[i+1]);
 		}
 		return msg2;
+	}
+	
+	public static List<String> getMessageList(String msg, String... params) {
+		if(params.length%2!=0) return null;
+		List<String> msg2 = messages.getStringList(msg, Arrays.asList(msg), false);
+		List<String> msgf = new ArrayList<>();
+		for(String s : msg2) {
+			for(int i = 0; i < params.length; i+=2) {
+				s = s.replace("%"+params[i]+"%", params[i+1]);
+			}
+			msgf.add(s);
+		}
+		return msgf.stream().map(s -> ChatColor.translateAlternateColorCodes('&', s)).collect(Collectors.toList());
 	}
 	
 	public static String simpleReplace(String s){

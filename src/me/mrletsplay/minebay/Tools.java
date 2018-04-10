@@ -29,8 +29,34 @@ public class Tools {
 		i.setItemMeta(me);
 		return i;
 	}
+
+	public static ItemStack createItem(Material m, int am, int dam, String name, List<String> lore){
+		ItemStack i = new ItemStack(m, am, (short)dam);
+		ItemMeta me = i.getItemMeta();
+		me.setDisplayName(name);
+		List<String> s = new ArrayList<>();
+		for(String l:lore){
+			s.add(l);
+		}
+		me.setLore(s);
+		i.setItemMeta(me);
+		return i;
+	}
 	
 	public static ItemStack createItem(ItemStack it, String name, String... lore){
+		ItemStack i = new ItemStack(it);
+		ItemMeta me = i.getItemMeta();
+		me.setDisplayName(name);
+		List<String> s = new ArrayList<>();
+		for(String l:lore){
+			s.add(l);
+		}
+		me.setLore(s);
+		i.setItemMeta(me);
+		return i;
+	}
+	
+	public static ItemStack createItem(ItemStack it, String name, List<String> lore){
 		ItemStack i = new ItemStack(it);
 		ItemMeta me = i.getItemMeta();
 		me.setDisplayName(name);
