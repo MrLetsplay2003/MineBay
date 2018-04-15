@@ -37,7 +37,7 @@
   	<dependency>
   		<groupId>com.github.mrletsplay2003</groupId>
   		<artifactId>MrCore</artifactId>
-  		<version>v1.1</version>
+  		<version>master-SNAPSHOT</version>
   	</dependency>
  </dependencies>
 </project>
