@@ -2,12 +2,10 @@ package me.mrletsplay.minebay;
 
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -21,6 +19,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 public class GUIs {
 
@@ -34,7 +33,35 @@ public class GUIs {
 					
 					@Override
 					public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent e) {
-						p.openInventory(Main.createRoomGUI.getForPlayer(p));
+						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
+							if(MineBay.hasPermissionToCreateRoom(p)){
+								ItemStack baseItem = ItemUtils.createItem(Material.GRASS, 1, 0,
+										Config.getMessage("minebay.gui.confirm.room-create.name"),
+										Config.getMessageList("minebay.gui.confirm.room-create.lore", "price", ""+Config.config.getInt("minebay.user-rooms.room-price")));
+								p.openInventory(getConfirmGUI(baseItem, new GUIElementAction() {
+									
+									@Override
+									public boolean action(Player p, ClickAction e, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent event) {
+										EconomyResponse re = Main.econ.withdrawPlayer(p, Config.config.getInt("minebay.user-rooms.room-price"));
+										if(re.transactionSuccess()){
+											CancelTask.cancelForPlayer(p);
+											AuctionRoom r = AuctionRooms.createAuctionRoom(p, AuctionRooms.getNewRoomID(), false);
+											MineBay.updateRoomSelection();
+											p.openInventory(r.getSettingsMenu());
+											p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.room-created"), r));
+										}else{
+											p.sendMessage(Config.getMessage("minebay.info.room-create.error.general").replace("%error%", re.errorMessage));
+											p.closeInventory();
+										}
+										return true;
+									}
+								}).getForPlayer(p));
+							}else{
+								p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.room-create.error.too-many-rooms")));
+							}
+						}else{
+							p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.user-rooms-disabled")));
+						}
 						return true;
 					}
 				}));
@@ -92,8 +119,6 @@ public class GUIs {
 	}
 	
 	public static GUI getConfirmGUI(ItemStack baseItem, GUIElementAction confirm){
-		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, Config.prefix);
-		
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 1);
 
 		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));

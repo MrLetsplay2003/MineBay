@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -31,125 +30,13 @@ public class Events implements Listener{
 	
 
 	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.LOW)
+//	@EventHandler(priority = EventPriority.LOW)
 	public void onInvClick(InventoryClickEvent e){
 		if(e.getInventory().getName().equals(Config.prefix)){
 			try{
 				if(e.getInventory().getSize() == 9*6){
 					String mode = e.getInventory().getItem(46).getItemMeta().getDisplayName();
-					if(mode.equals("§8Auction Room")){
-						int page = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
-						int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(1)));
-						AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-						if(Config.config.getBoolean("minebay.general.allow-drag-and-drop")){
-							if(e.getClickedInventory()!=null && e.getClickedInventory().getName().equals(Config.prefix)){
-								if(e.getCursor()!=null && !e.getCursor().getType().equals(Material.AIR) && (e.getCurrentItem()==null || e.getCurrentItem().getType().equals(Material.AIR))){
-									sellItem.put((Player)e.getWhoClicked(), new Object[]{roomID,e.getCursor()});
-									int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
-									if(maxTime>0){
-										Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask((Player) e.getWhoClicked()), maxTime*20);
-									}
-									e.setCursor(new ItemStack(Material.AIR));
-									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
-									e.getWhoClicked().closeInventory();
-									return;
-								}
-							}else if(e.getClickedInventory()!=null){
-								return;
-							}
-						}
-						if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta()){
-							if(e.getCurrentItem().getItemMeta().hasDisplayName()){
-//								String name = e.getCurrentItem().getItemMeta().getDisplayName();
-								int slot = e.getSlot();
-								if(slot == 52){
-									Inventory newInv = r.getMineBayInv(page-1, (Player)e.getWhoClicked());
-									if(newInv!=null){
-										MineBay.changeInv(e.getInventory(), newInv);
-									}
-									e.setCancelled(true);
-									return;
-								}else if(slot == 53){
-									Inventory newInv = r.getMineBayInv(page+1, (Player)e.getWhoClicked());
-									if(newInv!=null){
-										MineBay.changeInv(e.getInventory(), newInv);
-									}
-									e.setCancelled(true);
-									return;
-								}else if(slot == 45){
-									Inventory newInv = MineBay.getRoomSelectionMenu(0, "all", (Player)e.getWhoClicked());
-									MineBay.changeInv(e.getInventory(), newInv);
-									e.setCancelled(true);
-									return;
-								}else {
-									e.setCancelled(true);
-									return; //TODO
-								}
-							}
-							if(e.getCurrentItem().getItemMeta().hasLore() && (e.getCurrentItem().getItemMeta().getLore().size() == 3 || e.getCurrentItem().getItemMeta().getLore().size() == 4)){
-								int id = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(2)));
-								SellItem it = r.getItemByID(id);
-								if(it!=null){
-									if(it.getSeller()!=null && !it.isSeller((Player) e.getWhoClicked())){
-										e.getWhoClicked().closeInventory();
-										MineBay.showPurchaseConfirmDialog((Player)e.getWhoClicked(), it);
-									}else{
-										HashMap<Integer,ItemStack> excess = e.getWhoClicked().getInventory().addItem(it.getItem());
-										for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
-											e.getWhoClicked().getWorld().dropItem(e.getWhoClicked().getLocation(), me.getValue());
-										}
-										r.removeSellItem(id);
-										e.getWhoClicked().closeInventory();
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.retract-sale.success")));
-									}
-								}
-							}
-						}
-					}else if(mode.equals("§8Auction Rooms")){
-						if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta() && e.getCurrentItem().getItemMeta().hasDisplayName()){
-//							String name = e.getCurrentItem().getItemMeta().getDisplayName();
-							int slot = e.getSlot();
-							int page = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
-							String search = e.getInventory().getItem(46).getItemMeta().getLore().get(1).replace("§8Owner: §7", "");
-							if(slot == 52){
-								Inventory newInv = MineBay.getRoomSelectionMenu(page-1, search, (Player)e.getWhoClicked());
-								if(newInv!=null){
-									MineBay.changeInv(e.getInventory(), newInv);
-								}
-								e.setCancelled(true);
-								return;
-							}else if(slot == 53){
-								Inventory newInv = MineBay.getRoomSelectionMenu(page+1, search, (Player)e.getWhoClicked());
-								if(newInv!=null){
-									MineBay.changeInv(e.getInventory(), newInv);
-								}
-								e.setCancelled(true);
-								return;
-							}else if(slot == 51){
-								MineBay.changeInv(e.getInventory(), MineBay.getRoomSelectionMenu(0, e.getWhoClicked().getName(), (Player)e.getWhoClicked()));
-							}else if(slot == 50){
-								MineBay.changeInv(e.getInventory(), MineBay.getRoomSelectionMenu(0, "all", (Player)e.getWhoClicked()));
-							}else if(slot == 49){
-								if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || e.getWhoClicked().hasPermission("minebay.user-rooms.create.when-disallowed"))){
-									if(MineBay.hasPermissionToCreateRoom((Player)e.getWhoClicked())){
-										e.getWhoClicked().openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.GRASS, 1, 0, "§8Buy Auction Room", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.room-price"))));
-									}else{
-										e.getWhoClicked().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.room-create.error.too-many-rooms")));
-									}
-								}else{
-									e.getWhoClicked().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.user-rooms-disabled")));
-								}
-							}else if(e.getCurrentItem().getItemMeta().hasLore() && e.getCurrentItem().getItemMeta().getLore().size() >= 4){
-								int clRoomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getCurrentItem().getItemMeta().getLore().get(3)));
-								AuctionRoom r = AuctionRooms.getAuctionRoomByID(clRoomID);
-								if(e.getClick().equals(ClickType.LEFT)){
-									MineBay.changeInv(e.getInventory(), r.getMineBayInv(0, (Player)e.getWhoClicked()));
-								}else if(e.getClick().equals(ClickType.RIGHT) && r.canEdit((Player) e.getWhoClicked())){
-									MineBay.changeInv(e.getInventory(), r.getSettingsMenu());
-								}
-							}
-						}
-					}else if(mode.equals("§8Settings")){
+					if(mode.equals("§8Settings")){
 						if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta() && e.getCurrentItem().getItemMeta().hasDisplayName()){
 //							String name = e.getCurrentItem().getItemMeta().getDisplayName();
 							int slot = e.getSlot();

@@ -154,6 +154,7 @@ public class Config {
 			cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
 			cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
 			cc.addDefault("minebay.gui.misc.back", "§cBack");
+			cc.addDefault("minebay.gui.misc.none", "§8None");
 			cc.addDefault("minebay.gui.room-settings.delete", "§cDelete Room");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
@@ -182,10 +183,17 @@ public class Config {
 			cc.addDefault("minebay.gui.room-settings.tax-increase.lore", Arrays.asList(
 																			"§8Left click to increase tax by 1%",
 																			"§8Shift-left click to increase tax by 10%"));
-			cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§8Decrease Tax");
+			cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§7Decrease Tax");
 			cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
 																			"§8Left click to decrease tax by 1%",
 																			"§8Shift-left click to decrease tax by 10%"));
+			
+			
+			
+			cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
+			cc.addDefault("minebay.gui.confirm.room-create.lore", Arrays.asList(
+																			"§8Price: §7%price%"));
+			
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
