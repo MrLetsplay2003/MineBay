@@ -57,6 +57,10 @@ public class SellItem{
 		return price;
 	}
 	
+	public AuctionRoom getRoom() {
+		return ar;
+	}
+	
 	public int getID() {
 		return id;
 	}

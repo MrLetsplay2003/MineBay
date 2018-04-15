@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang.WordUtils;
@@ -15,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -22,6 +25,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.io.Files;
+
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIAction;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilderMultiPage;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIDragDropListener;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementAction;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
+import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
 
 public class AuctionRoom {
 
@@ -32,6 +47,8 @@ public class AuctionRoom {
 	private String name, description;
 	private ItemStack icon;
 	private boolean isDefaultRoom;
+	private GUIMultiPage<SellItem> roomGUI;
+	private GUI roomSettingsGUI;
 	
 	private File roomFile;
 	private FileConfiguration roomConfig;
@@ -62,7 +79,89 @@ public class AuctionRoom {
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.roomID = id;
+		this.roomGUI = buildRoomGUI();
 		if(s) saveAllSettings();
+	}
+	
+	private GUIMultiPage<SellItem> buildRoomGUI(){
+		GUIBuilderMultiPage<SellItem> builder = new GUIBuilderMultiPage<>(Config.prefix, 6);
+		builder.addPageSlotsInRange(0, 44);
+		builder.addNextPageItem(53, ItemUtils.createItem(ItemUtils.arrowLeft(DyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
+		builder.addPreviousPageItem(52, ItemUtils.createItem(ItemUtils.arrowLeft(DyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
+		builder.addElement(45, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back")))
+				.setAction(new GUIElementAction() {
+					
+					@Override
+					public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent e) {
+						p.openInventory(GUIs.getAuctionRoomsGUI(null).getForPlayer(p));
+						return true;
+					}
+				}));
+		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
+		builder.addElement(46, gPane);
+		builder.addElement(47, gPane);
+		builder.addElement(48, gPane);
+		builder.addElement(49, gPane);
+		builder.addElement(50, gPane);
+		builder.addElement(51, gPane);
+		builder.setSupplier(new ItemSupplier<SellItem>() {
+			
+			@Override
+			public GUIElement toGUIElement(Player p, SellItem item) {
+				return new StaticGUIElement(item.getSellItemStack(p))
+						.setAction(new GUIElementAction() {
+							
+							@Override
+							public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent e) {
+								AuctionRoom room = item.getRoom();
+								if(item.getSeller()!=null && !item.isSeller(p)){
+									p.closeInventory();
+									MineBay.showPurchaseConfirmDialog(p, item);
+								}else{
+									HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item.getItem());
+									for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
+										p.getWorld().dropItem(p.getLocation(), me.getValue());
+									}
+									room.removeSellItem(item.getID());
+									p.closeInventory();
+									p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.retract-sale.success")));
+								}
+								return true;
+							}
+						});
+			}
+			
+			@Override
+			public List<SellItem> getItems() {
+				return getSoldItems();
+			}
+		});
+		builder.setDragDropListener(new GUIDragDropListener() {
+			
+			@Override
+			public boolean allowDragDrop(Player p, ItemStack item, Inventory inv, GUI gui, InventoryClickEvent e) {
+				return Config.config.getBoolean("minebay.general.allow-drag-and-drop");
+			}
+		});
+		builder.setActionListener(new GUIAction() {
+			
+			@SuppressWarnings("deprecation")
+			@Override
+			public boolean action(Player p, ClickAction a, ItemStack it, GUIElement el, Inventory inv, GUI gui, InventoryClickEvent e) {
+				if(it != null && !it.getType().equals(Material.AIR) && el == null) {
+					Events.sellItem.put(p, new Object[]{roomID, it});
+					int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
+					if(maxTime>0){
+						Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(p), maxTime * 20);
+					}
+					e.setCursor(new ItemStack(Material.AIR));
+					p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
+					p.closeInventory();
+				}
+				return false;
+			}
+		});
+		return builder.build();
 	}
 	
 	public void setDefaultSettings(String owner, boolean isDefaultRoom){
@@ -244,50 +343,54 @@ public class AuctionRoom {
 		}
 	}
 	
-	public Inventory getMineBayInv(int page, Player p){
-		List<SellItem> sItems = getSoldItems();
-		int pages = sItems.size()/9/5;
-		if(pages >= page && page >= 0){
-			Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
-			int start = page*5*9;
-			int end = (sItems.size()<=start+5*9)?sItems.size():start+5*9;
-			for(int i = start; i < end; i++){
-				SellItem it = sItems.get(i);
-				inv.setItem(i-start, it.getSellItemStack(p));
-			}
-			ItemStack gPane = new ItemStack(Material.STAINED_GLASS_PANE);
-			ItemMeta gMeta = gPane.getItemMeta();
-			gMeta.setDisplayName("§0");
-			gPane.setItemMeta(gMeta);
-			for(int i = 5*9+1; i < 6*9-2; i++){
-				inv.setItem(i, gPane);
-			}
-			ItemStack gPane1 = Tools.arrowLeft();
-			ItemMeta gMeta1 = gPane1.getItemMeta();
-			gMeta1.setDisplayName(Config.getMessage("minebay.gui.misc.previous-page"));
-			gPane1.setItemMeta(gMeta1);
-			ItemStack gPane2 = Tools.arrowRight();
-			ItemMeta gMeta2 = gPane2.getItemMeta();
-			gMeta2.setDisplayName(Config.getMessage("minebay.gui.misc.next-page"));
-			gPane2.setItemMeta(gMeta2);
-			ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
-			ItemMeta gMeta3 = gPane3.getItemMeta();
-			gMeta3.setDisplayName("§8Auction Room");
-			List<String> l = new ArrayList<>();
-			l.add("§7Page: "+page);
-			l.add("§7Room ID: "+roomID);
-			gMeta3.setLore(l);
-			gPane3.setItemMeta(gMeta3);
-			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
-			inv.setItem(45, back);
-			inv.setItem(46, gPane3);
-			inv.setItem(52, gPane1);
-			inv.setItem(53, gPane2);
-			return inv;
-		}else{
-			return null;
-		}
+	public Inventory getMineBayInv(int page, Player p) {
+		return roomGUI.getForPlayer(p, page);
 	}
+	
+//	public Inventory getMineBayInv(int page, Player p){
+//		List<SellItem> sItems = getSoldItems();
+//		int pages = sItems.size()/9/5;
+//		if(pages >= page && page >= 0){
+//			Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
+//			int start = page*5*9;
+//			int end = (sItems.size()<=start+5*9)?sItems.size():start+5*9;
+//			for(int i = start; i < end; i++){
+//				SellItem it = sItems.get(i);
+//				inv.setItem(i-start, it.getSellItemStack(p));
+//			}
+//			ItemStack gPane = new ItemStack(Material.STAINED_GLASS_PANE);
+//			ItemMeta gMeta = gPane.getItemMeta();
+//			gMeta.setDisplayName("§0");
+//			gPane.setItemMeta(gMeta);
+//			for(int i = 5*9+1; i < 6*9-2; i++){
+//				inv.setItem(i, gPane);
+//			}
+//			ItemStack gPane1 = Tools.arrowLeft();
+//			ItemMeta gMeta1 = gPane1.getItemMeta();
+//			gMeta1.setDisplayName(Config.getMessage("minebay.gui.misc.previous-page"));
+//			gPane1.setItemMeta(gMeta1);
+//			ItemStack gPane2 = Tools.arrowRight();
+//			ItemMeta gMeta2 = gPane2.getItemMeta();
+//			gMeta2.setDisplayName(Config.getMessage("minebay.gui.misc.next-page"));
+//			gPane2.setItemMeta(gMeta2);
+//			ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
+//			ItemMeta gMeta3 = gPane3.getItemMeta();
+//			gMeta3.setDisplayName("§8Auction Room");
+//			List<String> l = new ArrayList<>();
+//			l.add("§7Page: "+page);
+//			l.add("§7Room ID: "+roomID);
+//			gMeta3.setLore(l);
+//			gPane3.setItemMeta(gMeta3);
+//			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
+//			inv.setItem(45, back);
+//			inv.setItem(46, gPane3);
+//			inv.setItem(52, gPane1);
+//			inv.setItem(53, gPane2);
+//			return inv;
+//		}else{
+//			return null;
+//		}
+//	}
 	
 	public Inventory getSettingsMenu(){
 		Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);

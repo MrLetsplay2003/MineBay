@@ -40,8 +40,6 @@ public class Config {
 	}
 	
 	public static void init(){
-		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
-		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
 		config.addDefault("minebay.general.max-type-time-seconds", -1);
@@ -82,7 +80,12 @@ public class Config {
 		config.addDefault("room-perm.user.donator.max-rooms", 7);
 		config.addDefault("room-perm.user.donator.allow-colored-names", true);
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
+		
+		config.applyDefaults(true);
+		
 		use_uuids = config.getBoolean("minebay.general.use-uuids")&&Bukkit.getOnlineMode();
+		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
+		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		saveConfig();
 		
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));
@@ -215,6 +218,7 @@ public class Config {
 		}else if(file.equalsIgnoreCase("config")) {
 			msg = config.getString(path);
 		}
+		if(msg == null) msg = path;
 		return simpleReplace(msg);
 	}
 	

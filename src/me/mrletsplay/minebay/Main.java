@@ -92,7 +92,7 @@ public class Main extends JavaPlugin{
 		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;
-				p.openInventory(AuctionRoomsGUI.getGUI(null).getForPlayer(p));
+				p.openInventory(GUIs.getAuctionRoomsGUI(null).getForPlayer(p));
 				if(args.length>=1){
 					if(args[0].equalsIgnoreCase("open")){
 						if(args.length == 1){
