@@ -15,6 +15,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.milkbowl.vault.economy.Economy;
 
@@ -30,6 +32,8 @@ public class Main extends JavaPlugin{
 	 * Open room cmd
 	 * Edit name fix
 	 */
+	
+	public static GUI createRoomGUI;
 	
 	@Override
 	public void onEnable() {
@@ -88,6 +92,7 @@ public class Main extends JavaPlugin{
 		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;
+				p.openInventory(AuctionRoomsGUI.getGUI(null).getForPlayer(p));
 				if(args.length>=1){
 					if(args[0].equalsIgnoreCase("open")){
 						if(args.length == 1){

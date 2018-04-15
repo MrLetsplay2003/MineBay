@@ -378,25 +378,25 @@ public class Events implements Listener{
 //							String name = e.getCurrentItem().getItemMeta().getDisplayName();
 							int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(46).getItemMeta().getLore().get(0)));
 							AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-							if(name.contains("§7Block | ") || name.contains("§7Item | ")){
-								r.setIcon(e.getCurrentItem());
-								e.getWhoClicked().closeInventory();
-								r.saveAllSettings();
-								r.updateSettings();
-								r.updateMineBay();
-								MineBay.updateRoomSelection();
-								e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.newicon-applied").replace("%type%", e.getCurrentItem().getType().name().toLowerCase().replace("_", " ")));
-							}else if(name.equals("§6Back")){
-								Inventory newInv = r.getSettingsMenu();
-								MineBay.changeInv(e.getInventory(), newInv);
-								e.setCancelled(true);
-								return;
-							}else if(name.equals("§6Custom block/item")){
-								Inventory newInv = r.getIconChangeMenu();
-								e.getWhoClicked().openInventory(newInv);
-								e.setCancelled(true);
-								return;
-							}
+//							if(name.contains("§7Block | ") || name.contains("§7Item | ")){
+//								r.setIcon(e.getCurrentItem());
+//								e.getWhoClicked().closeInventory();
+//								r.saveAllSettings();
+//								r.updateSettings();
+//								r.updateMineBay();
+//								MineBay.updateRoomSelection();
+//								e.getWhoClicked().sendMessage(Config.getMessage("minebay.info.newicon-applied").replace("%type%", e.getCurrentItem().getType().name().toLowerCase().replace("_", " ")));
+//							}else if(name.equals("§6Back")){
+//								Inventory newInv = r.getSettingsMenu();
+//								MineBay.changeInv(e.getInventory(), newInv);
+//								e.setCancelled(true);
+//								return;
+//							}else if(name.equals("§6Custom block/item")){
+//								Inventory newInv = r.getIconChangeMenu();
+//								e.getWhoClicked().openInventory(newInv);
+//								e.setCancelled(true);
+//								return;
+//							}
 						}
 					}
 				}
@@ -471,6 +471,7 @@ public class Events implements Listener{
 			if(e.getCurrentItem()!=null && e.getCurrentItem().hasItemMeta() && e.getCurrentItem().getItemMeta().hasDisplayName() && e.getInventory().getItem(0)!=null && e.getInventory().getItem(0).hasItemMeta() && e.getInventory().getItem(0).getItemMeta().hasDisplayName()){
 //				String name = e.getCurrentItem().getItemMeta().getDisplayName();
 				String mode = e.getInventory().getItem(0).getItemMeta().getDisplayName();
+				String name = "";
 				if(name.equals("§aConfirm")){
 					if(mode.equals("§8Buy Auction Room")){
 						EconomyResponse re = Main.econ.withdrawPlayer((Player)e.getWhoClicked(), Config.config.getInt("minebay.user-rooms.room-price"));
@@ -567,6 +568,7 @@ public class Events implements Listener{
 //					String name = e.getCurrentItem().getItemMeta().getDisplayName();
 					int roomID = Integer.parseInt(Config.onlyDigitsNoColor(e.getInventory().getItem(1).getItemMeta().getLore().get(0)));
 					AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
+					String name = "";
 					if(name.equals("§8Drop item here")){
 						if(e.getCursor()!=null && !e.getCursor().getType().equals(Material.AIR)){
 							int price = r.isDefaultRoom()?0:Config.config.getInt("minebay.user-rooms.custom-icon-price");
