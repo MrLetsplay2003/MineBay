@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
@@ -18,7 +20,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -26,6 +27,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.io.Files;
 
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIAction;
@@ -38,6 +40,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 public class AuctionRoom {
 
@@ -50,6 +53,8 @@ public class AuctionRoom {
 	private boolean isDefaultRoom;
 	private GUIMultiPage<SellItem> roomGUI;
 	private GUI roomSettingsGUI;
+	private GUI blockSelectGUI;
+	private GUI customIconGUI;
 	
 	private File roomFile;
 	private FileConfiguration roomConfig;
@@ -82,6 +87,8 @@ public class AuctionRoom {
 		this.roomID = id;
 		this.roomGUI = buildRoomGUI();
 		this.roomSettingsGUI = buildSettingsMenu();
+		this.blockSelectGUI = buildBlockSelectionGUI();
+		this.customIconGUI = buildCustomIconGUI();
 		if(s) saveAllSettings();
 	}
 	
@@ -163,10 +170,14 @@ public class AuctionRoom {
 				return true;
 			}
 		});
+		HashMap<String, Object> props = new HashMap<>();
+		props.put("minebay_type", "auction room");
+		props.put("minebay_auctionroom_id", roomID);
+		builder.setProperties(props);
 		return builder.build();
 	}
 	
-	public GUI buildSettingsMenu() {
+	private GUI buildSettingsMenu() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 6);
 		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
 		for(int i = 0; i < 9*6; i++) {
@@ -232,7 +243,7 @@ public class AuctionRoom {
 			
 			@Override
 			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
-				p.openInventory(getBlockSelectionInv());
+				p.openInventory(roomGUI.getForPlayer(p));
 				saveAllSettings();
 				updateSettings();
 				MineBay.updateRoomSelection();
@@ -249,6 +260,8 @@ public class AuctionRoom {
 			
 		});
 		
+		AuctionRoom room = this;
+		
 		builder.addElement(32, new StaticGUIElement(Tools.createItem(Tools.arrowLeft(), Config.getMessage("minebay.gui.room-settings.slots-buy.name"), Config.getMessageList("minebay.gui.room-settings.slots-buy.lore"))).setAction(new GUIElementAction() {
 			
 			@Override
@@ -256,15 +269,15 @@ public class AuctionRoom {
 				if(!isDefaultRoom()){
 					if(button.equals(ClickAction.LEFT_CLICK)){
 						if(getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
-							p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §71")));
+							p.openInventory(GUIs.buySlotsGUI(room, 1).getForPlayer(p));
 						}else{
 							p.sendMessage(Config.getMessage("minebay.info.slot-buy.toomanyslots"));
 						}
 					}else if(button.equals(ClickAction.SHIFT_LEFT_CLICK)){
 						if(getSlots()+5 <= Config.config.getInt("minebay.user-rooms.max-slots")){
-							p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §75")));
+							p.openInventory(GUIs.buySlotsGUI(room, 5).getForPlayer(p));
 						}else if(getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
-							p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Buy Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §7"+(Config.config.getInt("minebay.user-rooms.max-slots")-getSlots()))));
+							p.openInventory(GUIs.buySlotsGUI(room, Config.config.getInt("minebay.user-rooms.max-slots")-getSlots()).getForPlayer(p));
 						}else{
 							p.sendMessage(Config.getMessage("minebay.info.slot-buy.toomanyslots"));
 						}
@@ -285,7 +298,7 @@ public class AuctionRoom {
 						if(button.equals(ClickAction.LEFT_CLICK)){
 							if(getSlots() > Config.config.getInt("minebay.user-rooms.default-slot-number")){
 								if(getOccupiedSlots() <= getSlots()-1){
-									p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §71")));
+									p.openInventory(GUIs.sellSlotsGUI(room, 1).getForPlayer(p));
 								}else{
 									p.sendMessage(Config.getMessage("minebay.info.slot-sell.all-slots-occupied"));
 								}
@@ -295,14 +308,14 @@ public class AuctionRoom {
 						}else if(button.equals(ClickAction.SHIFT_LEFT_CLICK)){
 							if(getSlots()-5 >= Config.config.getInt("minebay.user-rooms.default-slot-number")){
 								if(getOccupiedSlots() <= getSlots()-5){
-									p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §75")));
+									p.openInventory(GUIs.sellSlotsGUI(room, 5).getForPlayer(p));
 								}else{
 									p.sendMessage(Config.getMessage("minebay.info.slot-sell.all-slots-occupied"));
 								}
 							}else if(getSlots() > Config.config.getInt("minebay.user-rooms.default-slot-number")){
 								int slotsToSell = getSlots()-Config.config.getInt("minebay.user-rooms.default-slot-number");
 								if(getOccupiedSlots() <= getSlots()-slotsToSell){
-									p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Sell Slot/s", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.slot-sell-price"), "§8Room ID: §7"+getRoomID(), "§8Count: §7"+slotsToSell)));
+									p.openInventory(GUIs.sellSlotsGUI(room, slotsToSell).getForPlayer(p));
 								}
 							}else{
 								p.sendMessage(Config.getMessage("minebay.info.slot-sell.notenoughslots"));
@@ -414,7 +427,7 @@ public class AuctionRoom {
 			
 			@Override
 			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
-				Inventory newInv = MineBay.getRoomSelectionMenu(0, "all", p);
+				Inventory newInv = GUIs.getAuctionRoomsGUI("all").getForPlayer(p);
 				p.openInventory(newInv);
 				return true;
 			}
@@ -427,9 +440,7 @@ public class AuctionRoom {
 				if(Config.config.getBoolean("minebay.general.allow-room-selling")){
 					if(getRoomID() != 0){
 						if(getSoldItems().isEmpty()){
-							int sl = (getSlots() - Config.config.getInt("minebay.user-rooms.default-slot-number"))*Config.config.getInt("minebay.user-rooms.slot-sell-price");
-							int pr = Config.config.getInt("minebay.user-rooms.room-sell-price");
-							p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.NAME_TAG, 1, 0, "§8Delete Room", "§8Price: §7"+(sl+pr), "§8Room ID: §7"+getRoomID())));
+							p.openInventory(GUIs.sellRoomGUI(room).getForPlayer(p));
 						}else{
 							p.sendMessage(Config.getMessage("minebay.info.sell-room.not-empty"));
 						}
@@ -444,8 +455,70 @@ public class AuctionRoom {
 			}
 		}));
 		
+
+		HashMap<String, Object> props = new HashMap<>();
+		props.put("minebay_type", "settings");
+		props.put("minebay_settings_id", roomID);
+		builder.setProperties(props);
+		return builder.build();
+	}
+	
+	private GUI buildCustomIconGUI() {
+		GUIBuilder builder = new GUIBuilder(Config.prefix, 1);
+		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
+		for(int i = 0; i < 9; i++) {
+			builder.addElement(i, gPane);
+		}
+		
+		builder.addElement(0, new StaticGUIElement(Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"))).setAction(new GUIElementAction() {
+			
+			@Override
+			public boolean action(Player p, ClickAction a, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent event) {
+				p.openInventory(getBlockSelectGUI().getForPlayer(p));
+				return true;
+			}
+		}));
+		
+		builder.addElement(4, new StaticGUIElement(Tools.createItem(Tools.createBanner(null, DyeColor.WHITE), Config.getMessage("minebay.gui.room-settings.custom-icon.item-drop.name"), Config.getMessageList("minebay.gui.room-settings.custom-icon.item-drop.lore"))).setAction(new GUIElementAction() {
+			
+			@SuppressWarnings("deprecation")
+			@Override
+			public boolean action(Player p, ClickAction a, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
+				if(clickedWith != null && !clickedWith.getType().equals(Material.AIR)) {
+					int price = isDefaultRoom()?0:Config.config.getInt("minebay.user-rooms.custom-icon-price");
+					EconomyResponse re = Main.econ.withdrawPlayer(p, price);
+					if(re.transactionSuccess()){
+						setIcon(event.getCursor());
+						saveAllSettings();
+						updateSettings();
+						MineBay.updateRoomSelection();
+						if(!Config.config.getBoolean("minebay.general.user-rooms-settings.change-icon-remove-item")){
+							Tools.addItem(p, event.getCursor());
+						}
+						event.setCursor(new ItemStack(Material.AIR));
+						p.openInventory(getSettingsGUI().getForPlayer(p));
+						p.sendMessage(Config.getMessage("minebay.info.buy-icon.success").replace("%type%", getIcon().getType().name().toLowerCase().replace("_", " ")).replace("%price%", ""+price));
+					}else{
+						p.sendMessage(Config.getMessage("minebay.info.buy-icon.error").replace("%error%", re.errorMessage));
+					}
+				}
+				return true;
+			}
+		}));
+		
+		builder.setDragDropListener(new GUIDragDropListener() {
+			
+			@Override
+			public boolean allowDragDrop(Player p, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent event) {
+				return true;
+			}
+		});
 		
 		return builder.build();
+	}
+	
+	public GUI getIconChangeGUI(){
+		return customIconGUI;
 	}
 	
 	public void setDefaultSettings(String owner, boolean isDefaultRoom){
@@ -631,50 +704,9 @@ public class AuctionRoom {
 		return roomGUI.getForPlayer(p, page);
 	}
 	
-//	public Inventory getMineBayInv(int page, Player p){
-//		List<SellItem> sItems = getSoldItems();
-//		int pages = sItems.size()/9/5;
-//		if(pages >= page && page >= 0){
-//			Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
-//			int start = page*5*9;
-//			int end = (sItems.size()<=start+5*9)?sItems.size():start+5*9;
-//			for(int i = start; i < end; i++){
-//				SellItem it = sItems.get(i);
-//				inv.setItem(i-start, it.getSellItemStack(p));
-//			}
-//			ItemStack gPane = new ItemStack(Material.STAINED_GLASS_PANE);
-//			ItemMeta gMeta = gPane.getItemMeta();
-//			gMeta.setDisplayName("§0");
-//			gPane.setItemMeta(gMeta);
-//			for(int i = 5*9+1; i < 6*9-2; i++){
-//				inv.setItem(i, gPane);
-//			}
-//			ItemStack gPane1 = Tools.arrowLeft();
-//			ItemMeta gMeta1 = gPane1.getItemMeta();
-//			gMeta1.setDisplayName(Config.getMessage("minebay.gui.misc.previous-page"));
-//			gPane1.setItemMeta(gMeta1);
-//			ItemStack gPane2 = Tools.arrowRight();
-//			ItemMeta gMeta2 = gPane2.getItemMeta();
-//			gMeta2.setDisplayName(Config.getMessage("minebay.gui.misc.next-page"));
-//			gPane2.setItemMeta(gMeta2);
-//			ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
-//			ItemMeta gMeta3 = gPane3.getItemMeta();
-//			gMeta3.setDisplayName("§8Auction Room");
-//			List<String> l = new ArrayList<>();
-//			l.add("§7Page: "+page);
-//			l.add("§7Room ID: "+roomID);
-//			gMeta3.setLore(l);
-//			gPane3.setItemMeta(gMeta3);
-//			ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
-//			inv.setItem(45, back);
-//			inv.setItem(46, gPane3);
-//			inv.setItem(52, gPane1);
-//			inv.setItem(53, gPane2);
-//			return inv;
-//		}else{
-//			return null;
-//		}
-//	}
+	public GUI getSettingsGUI() {
+		return roomSettingsGUI;
+	}
 	
 	public static int getMineBayPage(Inventory inv){
 		try{
@@ -688,12 +720,20 @@ public class AuctionRoom {
 	public void updateMineBay(){
 		try{
 			for(Player pl : Bukkit.getOnlinePlayers()){
-				String t = MineBay.getInvType(pl);
-				if(t.equals("auction room")){
+//				String t = MineBay.getInvType(pl);
+				Inventory oI = MineBay.getOpenInv(pl);
+				if(oI == null) continue;
+				GUI gui = GUIUtils.getGUI(oI);
+				if(gui == null) continue;
+				HashMap<String, Object> props = gui.getHolder().getProperties();
+				String t = (String) props.get("minebay_type");
+				if(t == null) continue;
+				if(t.equals("auction room "+roomID)){
 					Inventory mbInv = pl.getOpenInventory().getTopInventory();
 					int page = getMineBayPage(mbInv);
 					if(page!=-1){
-						MineBay.changeInv(mbInv, getMineBayInv(page, pl));
+						pl.openInventory(getMineBayInv(page, pl));
+//						MineBay.changeInv(mbInv, getMineBayInv(page, pl));
 					}
 				}
 			}
@@ -711,10 +751,17 @@ public class AuctionRoom {
 	public void updateSettings(){
 		try{
 			for(Player pl : Bukkit.getOnlinePlayers()){
-				String t = MineBay.getInvType(pl);
-				if(t.equals("settings")){
-					Inventory mbInv = pl.getOpenInventory().getTopInventory();
-					MineBay.changeInv(mbInv, roomSettingsGUI.getForPlayer(pl));
+				Inventory oI = MineBay.getOpenInv(pl);
+				if(oI == null) continue;
+				GUI gui = GUIUtils.getGUI(oI);
+				if(gui == null) continue;
+				HashMap<String, Object> props = gui.getHolder().getProperties();
+				String t = (String) props.get("minebay_type");
+				if(t == null) continue;
+				if(t.equals("settings "+roomID)){
+					pl.openInventory(roomSettingsGUI.getForPlayer(pl));
+//					Inventory mbInv = pl.getOpenInventory().getTopInventory();
+//					MineBay.changeInv(mbInv, roomSettingsGUI.getForPlayer(pl));
 				}
 			}
 		}catch(ConcurrentModificationException e){
@@ -732,27 +779,22 @@ public class AuctionRoom {
 		if(icon==null) return null;
 		ItemStack newItem = icon.clone();
 		ItemMeta im = newItem.getItemMeta();
-		im.setDisplayName("§7"+name);
+		im.setDisplayName(Config.getMessage("minebay.gui.rooms.room-item.name", "room-name", name, "room-id", ""+roomID));
 		List<String> lore = new ArrayList<>();
-		if(owner!=null){
-			lore.add("§8Owner: §7"+getOwnerName());
-		}else{
-			lore.add("§8Owner: §7None");
-		}
-		if(slots==-1){
-			lore.add("§8Slots: §7"+getOccupiedSlots()+"/unlimited");
-		}else{
-			lore.add("§8Slots: §7"+getOccupiedSlots()+"/"+slots);
-		}
-		lore.add("§8Tax: §7"+taxshare+"%");
-		lore.add("§8ID: §7"+roomID);
+		lore = Config.getMessageList("minebay.gui.rooms.room-item.lore",
+				"owner", owner!=null?getOwnerName():Config.getMessage("minebay.gui.misc.none"),
+				"slots-limit", (slots==-1?Config.getMessage("minebay.gui.rooms.room-item.slots-unlimited"):""+slots),
+				"slots-occupied", ""+getOccupiedSlots(),
+				"tax", ""+taxshare,
+				"room-id", ""+roomID,
+				"can-edit", canEdit(p)?Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"");
+		
 		if(description!=null) {
-			for(String s : WordUtils.wrap("§8Description: §7"+description, 50).split(System.lineSeparator())) {
-				lore.add("§7"+s);
+			for(String s2 : lore) {
+				if(!s2.contains("%description%")) continue;
+				lore.addAll(Arrays.asList(WordUtils.wrap(s2.replace("%description%", description), 50).split(System.lineSeparator())).stream()
+						.map(s -> Config.getMessage("minebay.gui.rooms.room-item.description-linebreak-color")+s).collect(Collectors.toList()));
 			}
-		}
-		if(canEdit(p)){
-			lore.add("§7Right-click for settings");
 		}
 		im.setLore(lore);
 		im.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS);
@@ -760,65 +802,76 @@ public class AuctionRoom {
 		return newItem;
 	}
 	
-	public Inventory getBlockSelectionInv(){
-		Inventory inv = Bukkit.createInventory(null, 6*9, Config.prefix);
-		ItemStack gPane3 = new ItemStack(Material.STAINED_GLASS_PANE);
-		ItemMeta gMeta3 = gPane3.getItemMeta();
-		gMeta3.setDisplayName("§8Change Block");
-		List<String> l = new ArrayList<>();
-		l.add("§8Room ID: §7"+roomID);
-		gMeta3.setLore(l);
-		gPane3.setItemMeta(gMeta3);
-		
-		ItemStack it = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
-		for(int i = 5*9; i < inv.getSize(); i++){
-			inv.setItem(i, it);
+	private GUI buildBlockSelectionGUI() {
+		GUIBuilder builder = new GUIBuilder(Config.prefix, 6);
+		GUIElementAction bAction = new GUIElementAction() {
+			
+			@Override
+			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
+				setIcon(event.getCurrentItem());
+				p.closeInventory();
+				saveAllSettings();
+				updateSettings();
+				updateMineBay();
+				MineBay.updateRoomSelection();
+				p.sendMessage(Config.getMessage("minebay.info.newicon-applied").replace("%type%", event.getCurrentItem().getType().name().toLowerCase().replace("_", " ")));
+				return true;
+			}
+		};
+
+		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
+		for(int i = 0; i < 6*9; i++) {
+			builder.addElement(i, gPane);
 		}
 		
-		inv.setItem(0, Tools.createItem(Material.GRASS, 1, 0, "§7Block | Grass"));
-		inv.setItem(1, Tools.createItem(Material.DIRT, 1, 0, "§7Block | Dirt"));
-		inv.setItem(2, Tools.createItem(Material.STONE, 1, 0, "§7Block | Stone"));
-		inv.setItem(3, Tools.createItem(Material.BEDROCK, 1, 0, "§7Block | Bedrock"));
-		inv.setItem(4, Tools.createItem(Material.SPONGE, 1, 0, "§7Block | Sponge"));
-		inv.setItem(5, Tools.createItem(Material.DIAMOND_BLOCK, 1, 0, "§7Block | Diamond Block"));
-		inv.setItem(6, Tools.createItem(Material.REDSTONE_BLOCK, 1, 0, "§7Block | Redstone Block"));
-		inv.setItem(7, Tools.createItem(Material.IRON_BLOCK, 1, 0, "§7Block | Iron Block"));
-		inv.setItem(8, Tools.createItem(Material.TNT, 1, 0, "§7Block | TNT"));
-		inv.setItem(9, Tools.createItem(Material.EMERALD_BLOCK, 1, 0, "§7Block | Emerald Block"));
-		inv.setItem(10, Tools.createItem(Material.SAND, 1, 0, "§7Block | Sand"));
-		inv.setItem(11, Tools.createItem(Material.COBBLESTONE, 1, 0, "§7Block | Cobblestone"));
-		inv.setItem(12, Tools.createItem(Material.OBSIDIAN, 1, 0, "§7Block | Obsidian"));
-		inv.setItem(13, Tools.createItem(Material.LAPIS_BLOCK, 1, 0, "§7Block | Lapis Lazuli Block"));
-		inv.setItem(14, Tools.createItem(Material.DIAMOND, 1, 0, "§7Item | Diamond"));
-		inv.setItem(15, Tools.createItem(Material.EMERALD, 1, 0, "§7Item | Emerald"));
-		inv.setItem(16, Tools.createItem(Material.GOLD_INGOT, 1, 0, "§7Item | Gold Ingot"));
-		inv.setItem(17, Tools.createItem(Material.IRON_INGOT, 1, 0, "§7Item | Iron Ingot"));
-		inv.setItem(18, Tools.createItem(Material.REDSTONE, 1, 0, "§7Item | Redstone"));
-		inv.setItem(19, Tools.createItem(Material.COAL, 1, 0, "§7Item | Coal"));
+		builder.addElement(0, new StaticGUIElement(Tools.createItem(Material.GRASS, 1, 0, "§7Block | Grass")).setAction(bAction));
+		builder.addElement(1, new StaticGUIElement(Tools.createItem(Material.DIRT, 1, 0, "§7Block | Dirt")).setAction(bAction));
+		builder.addElement(2, new StaticGUIElement(Tools.createItem(Material.STONE, 1, 0, "§7Block | Stone")).setAction(bAction));
+		builder.addElement(3, new StaticGUIElement(Tools.createItem(Material.BEDROCK, 1, 0, "§7Block | Bedrock")).setAction(bAction));
+		builder.addElement(4, new StaticGUIElement(Tools.createItem(Material.SPONGE, 1, 0, "§7Block | Sponge")).setAction(bAction));
+		builder.addElement(5, new StaticGUIElement(Tools.createItem(Material.DIAMOND_BLOCK, 1, 0, "§7Block | Diamond Block")).setAction(bAction));
+		builder.addElement(6, new StaticGUIElement(Tools.createItem(Material.REDSTONE_BLOCK, 1, 0, "§7Block | Redstone Block")).setAction(bAction));
+		builder.addElement(7, new StaticGUIElement(Tools.createItem(Material.IRON_BLOCK, 1, 0, "§7Block | Iron Block")).setAction(bAction));
+		builder.addElement(8, new StaticGUIElement(Tools.createItem(Material.TNT, 1, 0, "§7Block | TNT")).setAction(bAction));
+		builder.addElement(9, new StaticGUIElement(Tools.createItem(Material.EMERALD_BLOCK, 1, 0, "§7Block | Emerald Block")).setAction(bAction));
+		builder.addElement(10, new StaticGUIElement(Tools.createItem(Material.SAND, 1, 0, "§7Block | Sand")).setAction(bAction));
+		builder.addElement(11, new StaticGUIElement(Tools.createItem(Material.COBBLESTONE, 1, 0, "§7Block | Cobblestone")).setAction(bAction));
+		builder.addElement(12, new StaticGUIElement(Tools.createItem(Material.OBSIDIAN, 1, 0, "§7Block | Obsidian")).setAction(bAction));
+		builder.addElement(13, new StaticGUIElement(Tools.createItem(Material.LAPIS_BLOCK, 1, 0, "§7Block | Lapis Lazuli Block")).setAction(bAction));
+		builder.addElement(14, new StaticGUIElement(Tools.createItem(Material.DIAMOND, 1, 0, "§7Item | Diamond")).setAction(bAction));
+		builder.addElement(15, new StaticGUIElement(Tools.createItem(Material.EMERALD, 1, 0, "§7Item | Emerald")).setAction(bAction));
+		builder.addElement(16, new StaticGUIElement(Tools.createItem(Material.GOLD_INGOT, 1, 0, "§7Item | Gold Ingot")).setAction(bAction));
+		builder.addElement(17, new StaticGUIElement(Tools.createItem(Material.IRON_INGOT, 1, 0, "§7Item | Iron Ingot")).setAction(bAction));
+		builder.addElement(18, new StaticGUIElement(Tools.createItem(Material.REDSTONE, 1, 0, "§7Item | Redstone")).setAction(bAction));
+		builder.addElement(19, new StaticGUIElement(Tools.createItem(Material.COAL, 1, 0, "§7Item | Coal")).setAction(bAction));
 		
-		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
-		inv.setItem(45, back);
-		inv.setItem(46, gPane3);
+		builder.addElement(45, new StaticGUIElement(Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"))).setAction(new GUIElementAction() {
+			
+			@Override
+			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
+				p.openInventory(getSettingsGUI().getForPlayer(p));
+				return true;
+			}
+		}));
 		
-		inv.setItem(6*9-1, Tools.createItem(Tools.letterC(DyeColor.ORANGE), "§6Custom block/item", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.custom-icon-price")));
-		
-		return inv;
+		builder.addElement(53, new StaticGUIElement(Tools.createItem(Tools.letterC(DyeColor.ORANGE), Config.getMessage("minebay.gui.room-settings.custom-icon.name"), Config.getMessageList("minebay.gui.room-settings.custom-icon.lore", "price", ""+Config.config.getInt("minebay.user-rooms.custom-icon-price")))).setAction(new GUIElementAction() {
+			
+			@Override
+			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
+				p.openInventory(getIconChangeGUI().getForPlayer(p));
+				return true;
+			}
+		}));
+
+		HashMap<String, Object> props = new HashMap<>();
+		props.put("minebay_type", "select block");
+		props.put("minebay_blockselect_id", roomID);
+		builder.setProperties(props);
+		return builder.build();
 	}
 	
-	public Inventory getIconChangeMenu(){
-		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, Config.prefix+" §8Custom icon");
-		
-		ItemStack it = Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0");
-		for(int i = 0; i < inv.getSize(); i++){
-			inv.setItem(i, it);
-		}
-		
-		ItemStack back = Tools.createItem(Tools.arrowLeft(DyeColor.ORANGE), "§6Back");
-		inv.setItem(0, back);
-		inv.setItem(1, Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§8Custom icon", "§8Room ID: §7"+roomID));
-		inv.setItem(2, Tools.createItem(Material.STAINED_GLASS_PANE, 1, 7, "§8Drop item here"));
-		
-		return inv;
+	public GUI getBlockSelectGUI() {
+		return blockSelectGUI;
 	}
 	
 	public int getWorth(){

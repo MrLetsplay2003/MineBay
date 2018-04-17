@@ -154,7 +154,7 @@ public class Config {
 			cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
 			cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
 			cc.addDefault("minebay.gui.misc.back", "§cBack");
-			cc.addDefault("minebay.gui.misc.none", "§8None");
+			cc.addDefault("minebay.gui.misc.none", "None");
 			cc.addDefault("minebay.gui.room-settings.delete", "§cDelete Room");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
@@ -187,12 +187,55 @@ public class Config {
 			cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
 																			"§8Left click to decrease tax by 1%",
 																			"§8Shift-left click to decrease tax by 10%"));
+			cc.addDefault("minebay.gui.room-settings.room-delete.name", "§cDelete Room");
+			cc.addDefault("minebay.gui.room-settings.room-delete.lore", Arrays.asList(
+																			"§8Worth: §7%worth%",
+																			"§8Room ID: §7%room-id%"));
+			cc.addDefault("minebay.gui.room-settings.custom-icon.name", "§6Custom block/item");
+			cc.addDefault("minebay.gui.room-settings.custom-icon.lore", Arrays.asList(
+																			"§8Price: %price%"));
+			
+			cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.name", "§7Drop item here");
+			cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.lore", Arrays.asList(
+																			"§7Drop your item here"));
+			
+			cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
+			cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
+			cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
+			cc.addDefault("minebay.gui.rooms.room-item.can-edit", "§7Right-click for settings");
+			cc.addDefault("minebay.gui.rooms.room-item.lore", Arrays.asList(
+																			"§8Owner: §7%owner%",
+																			"§8Slots: §7%slots-occupied%/%slots-limit%",
+																			"§8Tax: §7%tax%%",
+																			"§8ID: §7%room-id%",
+																			"§8Description: §7%description%",
+																			"%can-edit%"
+																		));
 			
 			
 			
 			cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
 			cc.addDefault("minebay.gui.confirm.room-create.lore", Arrays.asList(
 																			"§8Price: §7%price%"));
+			
+			
+			cc.addDefault("minebay.gui.confirm.slots-buy.name", "§8Buy Slot(s)");
+			cc.addDefault("minebay.gui.confirm.slots-buy.lore", Arrays.asList(
+																			"§8Price: §7%price%",
+																			"§8Room ID: §7%room-id%",
+																			"§8Amount: §7%amount%"));
+
+			cc.addDefault("minebay.gui.confirm.slots-sell.name", "§8Sell Slot(s)");
+			cc.addDefault("minebay.gui.confirm.slots-sell.lore", Arrays.asList(
+																			"§8Worth: §7%price%",
+																			"§8Room ID: §7%room-id%",
+																			"§8Amount: §7%amount%"));
+			
+			cc.addDefault("minebay.gui.confirm.room-sell.name", "§8Sell Room");
+			cc.addDefault("minebay.gui.confirm.room-sell.lore", Arrays.asList(
+																			"§8Worth: §7%price%",
+																			"§8Room ID: §7%room-id%",
+																			"§8Amount: §7%amount%"));
 			
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
 //			cc.addDefault("minebay.gui.room-settings.delete", "");
