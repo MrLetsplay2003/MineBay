@@ -15,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
 import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.milkbowl.vault.economy.Economy;
 
@@ -31,9 +32,12 @@ public class Main extends JavaPlugin{
 	 * Edit name fix
 	 */
 	
+	public static GUI createRoomGUI;
+	
 	@Override
 	public void onEnable() {
 		pl = this;
+		MrCoreBukkitImpl.loadMrCore(this);
 		PLUGIN_VERSION = getDescription().getVersion();
 		initConfig();
 		Bukkit.getPluginManager().registerEvents(new Events(), this);
@@ -92,7 +96,7 @@ public class Main extends JavaPlugin{
 					if(args[0].equalsIgnoreCase("open")){
 						if(args.length == 1){
 							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
-								p.openInventory(MineBay.getRoomSelectionMenu(0, "all", p));
+								p.openInventory(GUIs.getAuctionRoomsGUI(null).getForPlayer(p));
 								CancelTask.cancelForPlayer(p);
 							}else{
 								p.openInventory(MineBay.getMainAuctionRoom().getMineBayInv(0, p));
@@ -103,7 +107,7 @@ public class Main extends JavaPlugin{
 						return true;
 					}else if(args[0].equalsIgnoreCase("reload")){
 						if(p.hasPermission("minebay.reload")){
-							if(args.length == 1){
+							if(args.length == 1) {
 								try {
 									Config.config.reloadConfig(false);
 								} catch (InvalidConfigException | IOException e) {
@@ -127,7 +131,7 @@ public class Main extends JavaPlugin{
 									if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
 										if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 											CancelTask.cancelForPlayer(p);
-											p.openInventory(MineBay.getSellRoomSelectionMenu(0, "all", price));
+											p.openInventory(GUIs.getAuctionRoomsSellGUI(null, price).getForPlayer(p));
 										}else{
 											CancelTask.cancelForPlayer(p);
 											AuctionRoom main = MineBay.getMainAuctionRoom();
@@ -155,7 +159,8 @@ public class Main extends JavaPlugin{
 					}else if(args[0].equalsIgnoreCase("create")){
 						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(p)){
-								p.openInventory(MineBay.getConfirmGUI(Tools.createItem(Material.GRASS, 1, 0, "§8Buy Auction Room", "§8Price: §7"+Config.config.getInt("minebay.user-rooms.room-price"))));
+								p.openInventory(GUIs.buyRoomGUI().getForPlayer(p));
+
 							}else{
 								p.sendMessage(Config.getMessage("minebay.info.room-create.error.too-many-rooms"));
 							}
@@ -168,7 +173,7 @@ public class Main extends JavaPlugin{
 							r.setSlots(-1);
 							r.saveAllSettings();
 							MineBay.updateRoomSelection();
-							p.openInventory(r.getSettingsMenu());
+							p.openInventory(r.getSettingsGUI().getForPlayer(p));
 							p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.room-created"), r));
 						}else{
 							sendCommandHelp(p);
