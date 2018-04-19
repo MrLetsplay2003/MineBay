@@ -39,6 +39,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
+import me.mrletsplay.mrcore.misc.OtherTools;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 
@@ -720,7 +721,6 @@ public class AuctionRoom {
 	public void updateMineBay(){
 		try{
 			for(Player pl : Bukkit.getOnlinePlayers()){
-//				String t = MineBay.getInvType(pl);
 				Inventory oI = MineBay.getOpenInv(pl);
 				if(oI == null) continue;
 				GUI gui = GUIUtils.getGUI(oI);
@@ -733,7 +733,6 @@ public class AuctionRoom {
 					int page = getMineBayPage(mbInv);
 					if(page!=-1){
 						pl.openInventory(getMineBayInv(page, pl));
-//						MineBay.changeInv(mbInv, getMineBayInv(page, pl));
 					}
 				}
 			}
@@ -760,8 +759,6 @@ public class AuctionRoom {
 				if(t == null) continue;
 				if(t.equals("settings "+roomID)){
 					pl.openInventory(roomSettingsGUI.getForPlayer(pl));
-//					Inventory mbInv = pl.getOpenInventory().getTopInventory();
-//					MineBay.changeInv(mbInv, roomSettingsGUI.getForPlayer(pl));
 				}
 			}
 		}catch(ConcurrentModificationException e){
@@ -789,14 +786,23 @@ public class AuctionRoom {
 				"room-id", ""+roomID,
 				"can-edit", canEdit(p)?Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"");
 		
+		List<String> fLore = new ArrayList<>();
 		if(description!=null) {
 			for(String s2 : lore) {
-				if(!s2.contains("%description%")) continue;
-				lore.addAll(Arrays.asList(WordUtils.wrap(s2.replace("%description%", description), 50).split(System.lineSeparator())).stream()
-						.map(s -> Config.getMessage("minebay.gui.rooms.room-item.description-linebreak-color")+s).collect(Collectors.toList()));
+				if(!s2.contains("%description%")) {
+					fLore.add(s2);
+					continue;
+				}
+				String fS = s2.replace("%description%", description);
+				System.out.println(fS);
+				OtherTools.advSplit(fS, 5).stream()
+						.map(s -> Config.getMessage("minebay.gui.rooms.room-item.description-linebreak-color")+s)
+						.forEach(s -> {
+							System.out.println(s);
+						});
 			}
 		}
-		im.setLore(lore);
+		im.setLore(fLore);
 		im.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS);
 		newItem.setItemMeta(im);
 		return newItem;

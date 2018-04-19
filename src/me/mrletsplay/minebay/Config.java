@@ -237,16 +237,6 @@ public class Config {
 																			"§8Room ID: §7%room-id%",
 																			"§8Amount: §7%amount%"));
 			
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-//			cc.addDefault("minebay.gui.room-settings.delete", "");
-			
 			cc.applyDefaults(true);
 			
 			return cc;

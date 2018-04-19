@@ -37,6 +37,7 @@ public class Main extends JavaPlugin{
 	@Override
 	public void onEnable() {
 		pl = this;
+		MrCoreBukkitImpl.loadMrCore(this);
 		PLUGIN_VERSION = getDescription().getVersion();
 		initConfig();
 		Bukkit.getPluginManager().registerEvents(new Events(), this);
