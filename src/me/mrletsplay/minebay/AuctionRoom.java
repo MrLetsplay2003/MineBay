@@ -124,7 +124,7 @@ public class AuctionRoom {
 								AuctionRoom room = item.getRoom();
 								if(item.getSeller()!=null && !item.isSeller(p)){
 									p.closeInventory();
-									MineBay.showPurchaseConfirmDialog(p, item);
+									p.openInventory(GUIs.purchaseItemGUI(item).getForPlayer(p));
 								}else{
 									HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item.getItem());
 									for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
@@ -254,7 +254,8 @@ public class AuctionRoom {
 
 			@Override
 			public ItemStack getItem(Player p) {
-				return Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.slots.name"), Config.getMessageList("minebay.gui.room-settings.slots.lore", "slots", ""+slots));
+				return Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.slots.name"), Config.getMessageList("minebay.gui.room-settings.slots.lore",
+						"slots", ""+(slots==-1?Config.getMessage("minebay.gui.rooms.room-item.slots-unlimited"):""+slots)));
 			}
 			
 		});
@@ -426,7 +427,7 @@ public class AuctionRoom {
 			
 			@Override
 			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
-				Inventory newInv = GUIs.getAuctionRoomsGUI("all").getForPlayer(p);
+				Inventory newInv = GUIs.getAuctionRoomsGUI(null).getForPlayer(p);
 				p.openInventory(newInv);
 				return true;
 			}
@@ -792,12 +793,9 @@ public class AuctionRoom {
 					continue;
 				}
 				String fS = s2.replace("%description%", description);
-				System.out.println(fS);
-				OtherTools.advSplit(fS, 5).stream()
+				OtherTools.advSplit(fS, 50).stream()
 						.map(s -> Config.getMessage("minebay.gui.rooms.room-item.description-linebreak-color")+s)
-						.forEach(s -> {
-							System.out.println(s);
-						});
+						.forEach(fLore::add);
 			}
 		}
 		im.setLore(fLore);

@@ -5,12 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
@@ -19,23 +15,6 @@ public class MineBay {
 	
 	public static AuctionRoom getMainAuctionRoom(){
 		return AuctionRooms.getAuctionRoomByID(0);
-	}
-	
-	public static void showPurchaseConfirmDialog(Player p, SellItem item){
-		String name = Config.prefix+" "+Config.getMessage("minebay.gui.purchase-confirm.items.name");
-		Inventory inv = Bukkit.createInventory(null, InventoryType.HOPPER, name);
-		ItemStack gPane = new ItemStack(Material.STAINED_GLASS_PANE);
-		ItemMeta gMeta = gPane.getItemMeta();
-		gMeta.setDisplayName("§0");
-		gPane.setItemMeta(gMeta);
-		
-		inv.setItem(0, item.getItem());
-		inv.setItem(1, item.getConfirmItemStack());
-		inv.setItem(2, gPane);
-		inv.setItem(3, Tools.createItem(Material.BANNER, 1, 10, Config.getMessage("minebay.gui.purchase-confirm.items.confirm")));
-		inv.setItem(4, Tools.createItem(Material.BANNER, 1, 1, Config.getMessage("minebay.gui.purchase-confirm.items.cancel")));
-		
-		p.openInventory(inv);
 	}
 	
 	public static void updateRoomSelection(){

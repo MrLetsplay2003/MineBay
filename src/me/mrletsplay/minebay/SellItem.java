@@ -1,17 +1,12 @@
 package me.mrletsplay.minebay;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BannerMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class SellItem{
 
@@ -66,33 +61,20 @@ public class SellItem{
 	}
 	
 	public ItemStack getSellItemStack(Player p){
-		ItemStack newItem = new ItemStack(item);
-		ItemMeta im = newItem.getItemMeta();
-		List<String> lore = new ArrayList<>();
-		lore.add("§8Price: §7"+price+" "+Main.econ.currencyNamePlural());
-		lore.add("§8Seller: §7"+getSellerName());
-		lore.add("§8Product ID: §7"+id);
-		if(isSeller(p)){
-			lore.add("§7Click to retract sale");
-		}
-		im.setLore(lore);
-		newItem.setItemMeta(im);
-		return newItem;
+		return Tools.createItem(item, item.getItemMeta().getDisplayName(), Config.getMessageList("minebay.gui.room.sold-item.lore", 
+					"price", price+" "+Main.econ.currencyNamePlural(),
+					"seller-name", getSellerName(),
+					"item-id", ""+id,
+					"retract-sale", (isSeller(p)?Config.getMessage("minebay.gui.room.sold-item.retract-sale"):"")
+				));
 	}
 	
 	public ItemStack getConfirmItemStack(){
-		ItemStack newItem = new ItemStack(Material.BANNER);
-		BannerMeta im = (BannerMeta) newItem.getItemMeta();
-		im.setBaseColor(DyeColor.YELLOW);
-		im.setDisplayName("§eInfo");
-		List<String> lore = new ArrayList<>();
-		lore.add("§8Price: §7"+price+" "+Main.econ.currencyNamePlural());
-		lore.add("§8Seller: §7"+getSellerName());
-		lore.add("§8Product ID: §7"+id);
-		lore.add("§8Auction Room: §7"+ar.getRoomID());
-		im.setLore(lore);
-		newItem.setItemMeta(im);
-		return newItem;
+		return Tools.createItem(Tools.createBanner("", DyeColor.YELLOW), Config.getMessage("minebay.gui.confirm.buy-item.info.name"), Config.getMessageList("minebay.gui.confirm.buy-item.info.lore", 
+					"price", price+" "+Main.econ.currencyNamePlural(),
+					"seller", getSellerName(),
+					"item-id", ""+id,
+					"room-id", ""+ar.getRoomID()));
 	}
 	
 }

@@ -151,6 +151,14 @@ public class Config {
 			cc.addDefault("minebay.gui.rooms.create-room", "§aCreate new room");
 			cc.addDefault("minebay.gui.rooms.list-all", "§7All rooms");
 			cc.addDefault("minebay.gui.rooms.list-self", "§7Your rooms");
+			
+			cc.addDefault("minebay.gui.room.sold-item.lore", Arrays.asList(
+																		"§8Price: §7%price%",
+																		"§8Seller: §7%seller-name%",
+																		"§8Product ID: §7%item-id%",
+																		"%retract-sale%"
+																	));
+			cc.addDefault("minebay.gui.room.sold-item.retract-sale", "§7Click to retract sale");
 			cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
 			cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
 			cc.addDefault("minebay.gui.misc.back", "§cBack");
@@ -159,6 +167,7 @@ public class Config {
 			cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
 			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
 																				  "§8Currently: §7%name%",
+																				  "",
 																				  "§7Description",
 																				  "§8Currently: §7%description%"));
 			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore-linebreak-color", "§7");
@@ -237,7 +246,22 @@ public class Config {
 																			"§8Room ID: §7%room-id%",
 																			"§8Amount: §7%amount%"));
 			
-			cc.applyDefaults(true);
+			cc.addDefault("minebay.gui.confirm.confirm.name", "§aConfirm");
+			cc.addDefault("minebay.gui.confirm.confirm.lore", Arrays.asList(
+																			"§7This will confirm the current action"));
+			
+			cc.addDefault("minebay.gui.confirm.cancel.name", "§cCancel");
+			cc.addDefault("minebay.gui.confirm.cancel.lore", Arrays.asList(
+																			"§7This will cancel the current action"));
+			
+			cc.addDefault("minebay.gui.confirm.buy-item.info.name", "§eInfo");
+			cc.addDefault("minebay.gui.confirm.buy-item.info.lore", Arrays.asList(
+																			"§8Price: §7%price%",
+																			"§8Seller: §7%seller%",
+																			"§8Product ID: §7%item-id%",
+																			"§8Auction Room: §7%room-id%"));
+			
+			cc.applyDefaults(true, true);
 			
 			return cc;
 		} catch (InvalidConfigException | IOException e) {

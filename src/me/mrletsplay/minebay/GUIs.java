@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -156,15 +157,21 @@ public class GUIs {
 	}
 	
 	public static GUI getConfirmGUI(ItemStack baseItem, GUIElementAction confirm){
-		GUIBuilder builder = new GUIBuilder(Config.prefix, 1);
+		GUIBuilder builder = new GUIBuilder(Config.prefix, InventoryType.HOPPER);
 
 		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
 		builder.addElement(1, gPane);
 		builder.addElement(2, gPane);
 		
 		builder.addElement(0, new StaticGUIElement(baseItem));
-		builder.addElement(3, new StaticGUIElement(ItemUtils.createBanner("§aConfirm", DyeColor.GREEN)).setAction(confirm));
-		builder.addElement(4, new StaticGUIElement(ItemUtils.createBanner("§cCancel", DyeColor.RED)).setAction(new GUIElementAction() {
+		ItemStack confirmItem = ItemUtils.createItem(ItemUtils.createBanner(null, DyeColor.GREEN),
+				Config.getMessage("minebay.gui.confirm.confirm.name"),
+				Config.getMessageList("minebay.gui.confirm.confirm.lore"));
+		builder.addElement(3, new StaticGUIElement(confirmItem).setAction(confirm));
+		ItemStack cancelItem = ItemUtils.createItem(ItemUtils.createBanner(null, DyeColor.RED),
+				Config.getMessage("minebay.gui.confirm.cancel.name"),
+				Config.getMessageList("minebay.gui.confirm.cancel.lore"));
+		builder.addElement(4, new StaticGUIElement(cancelItem).setAction(new GUIElementAction() {
 			
 			@Override
 			public boolean action(Player p, ClickAction a, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent e) {
@@ -205,22 +212,23 @@ public class GUIs {
 				Config.getMessage("minebay.gui.confirm.slots-buy.name"),
 				Config.getMessageList("minebay.gui.confirm.slots-buy.lore",
 						"price", ""+(amount*Config.config.getInt("minebay.user-rooms.slot-price")),
-						"amount", ""+amount));
+						"amount", ""+amount,
+						"room-id", ""+r.getRoomID()));
 		return getConfirmGUI(baseItem, new GUIElementAction() {
 			
 			@Override
 			public boolean action(Player p, ClickAction e, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent event) {
-				EconomyResponse re = Main.econ.withdrawPlayer(p, Config.config.getInt("minebay.user-rooms.room-price"));
+				EconomyResponse re = Main.econ.withdrawPlayer(p, Config.config.getInt("minebay.user-rooms.slot-price")*amount);
 				if(re.transactionSuccess()){
-					CancelTask.cancelForPlayer(p);
-					AuctionRoom r = AuctionRooms.createAuctionRoom(p, AuctionRooms.getNewRoomID(), false);
+					r.setSlots(r.getSlots()+amount);
+					r.saveAllSettings();
+					r.updateSettings();
 					MineBay.updateRoomSelection();
-					p.openInventory(r.getSettingsGUI().getForPlayer(p));
-					p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.slot-buy.success"), r));
-				}else{
-					p.sendMessage(Config.getMessage("minebay.info.slot-buy.error").replace("%error%", re.errorMessage));
-					p.closeInventory();
+					if(Config.config.getBoolean("minebay.general.user-rooms-settings.slot-notify")){
+						p.sendMessage(Config.getMessage("minebay.info.slot-buy.success", "slotamount", ""+amount, "price", ""+Config.config.getInt("minebay.user-rooms.slot-price")*amount));
+					}
 				}
+				p.openInventory(r.getSettingsGUI().getForPlayer(p));
 				return true;
 			}
 		});
@@ -231,22 +239,23 @@ public class GUIs {
 				Config.getMessage("minebay.gui.confirm.slots-sell.name"),
 				Config.getMessageList("minebay.gui.confirm.slots-sell.lore",
 						"price", ""+(amount*Config.config.getInt("minebay.user-rooms.slot-sell-price")),
-						"amount", ""+amount));
+						"amount", ""+amount,
+						"room-id", ""+r.getRoomID()));
 		return getConfirmGUI(baseItem, new GUIElementAction() {
 			
 			@Override
 			public boolean action(Player p, ClickAction e, ItemStack it, Inventory inv, GUI gui, InventoryClickEvent event) {
-				EconomyResponse re = Main.econ.withdrawPlayer(p, Config.config.getInt("minebay.user-rooms.room-price"));
+				EconomyResponse re = Main.econ.depositPlayer(p, Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount);
 				if(re.transactionSuccess()){
-					CancelTask.cancelForPlayer(p);
-					AuctionRoom r = AuctionRooms.createAuctionRoom(p, AuctionRooms.getNewRoomID(), false);
+					r.setSlots(r.getSlots()-amount);
+					r.saveAllSettings();
+					r.updateSettings();
 					MineBay.updateRoomSelection();
-					p.openInventory(r.getSettingsGUI().getForPlayer(p));
-					p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.slot-sell.success"), r));
-				}else{
-					p.sendMessage(Config.getMessage("minebay.info.slot-sell.error").replace("%error%", re.errorMessage));
-					p.closeInventory();
+					if(Config.config.getBoolean("minebay.general.user-rooms-settings.slot-notify")){
+						p.sendMessage(Config.getMessage("minebay.info.slot-sell.success", "slotamount%", ""+amount, "price", ""+Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount));
+					}
 				}
+				p.openInventory(r.getSettingsGUI().getForPlayer(p));
 				return true;
 			}
 		});
