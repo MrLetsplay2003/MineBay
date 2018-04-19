@@ -1,6 +1,5 @@
 package me.mrletsplay.minebay;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
-import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin{
@@ -31,8 +28,6 @@ public class Main extends JavaPlugin{
 	 * Open room cmd
 	 * Edit name fix
 	 */
-	
-	public static GUI createRoomGUI;
 	
 	@Override
 	public void onEnable() {
@@ -108,11 +103,7 @@ public class Main extends JavaPlugin{
 					}else if(args[0].equalsIgnoreCase("reload")){
 						if(p.hasPermission("minebay.reload")){
 							if(args.length == 1) {
-								try {
-									Config.config.reloadConfig(false);
-								} catch (InvalidConfigException | IOException e) {
-									e.printStackTrace();
-								}
+								Config.reload();
 								Bukkit.getPluginManager().disablePlugin(this);
 								Bukkit.getPluginManager().enablePlugin(this);
 								p.sendMessage(Config.getMessage("minebay.info.reload-complete"));

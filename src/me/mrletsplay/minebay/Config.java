@@ -371,5 +371,13 @@ public class Config {
 		so = so.replaceAll("\\.+$", "");
 		return so;
 	}
+
+	public static void reload() {
+		try {
+			config.reloadConfig(false);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 }
