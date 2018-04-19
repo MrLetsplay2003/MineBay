@@ -225,24 +225,17 @@ public class AuctionRoom {
 				}
 				p.closeInventory();
 				p.sendMessage(Config.getMessage("minebay.info.newdescription"));
-				return true;
+				return true;  
 			}
 		}));
 		
-		builder.addElement(19, new GUIElement() {
-
-			@Override
-			public ItemStack getItem(Player p) {
-				return Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.block.name"), Config.getMessageList("minebay.gui.room-settings.block.lore", "type", icon.getType().toString().toLowerCase().replace("_", " ")));
-			}
-			
-		});
+		builder.addElement(19, new StaticGUIElement(Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.block.name"), Config.getMessageList("minebay.gui.room-settings.block.lore", "type", icon.getType().toString().toLowerCase().replace("_", " ")))));
 		
 		builder.addElement(23, new StaticGUIElement(Tools.createItem(Material.STAINED_CLAY, 1, 4, Config.getMessage("minebay.gui.room-settings.block-change.name"))).setAction(new GUIElementAction() {
 			
 			@Override
 			public boolean action(Player p, ClickAction button, ItemStack clickedWith, Inventory inv, GUI gui, InventoryClickEvent event) {
-				p.openInventory(roomGUI.getForPlayer(p));
+				p.openInventory(blockSelectGUI.getForPlayer(p));
 				saveAllSettings();
 				updateSettings();
 				MineBay.updateRoomSelection();
@@ -250,15 +243,8 @@ public class AuctionRoom {
 			}
 		}));
 		
-		builder.addElement(28, new GUIElement() {
-
-			@Override
-			public ItemStack getItem(Player p) {
-				return Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.slots.name"), Config.getMessageList("minebay.gui.room-settings.slots.lore",
-						"slots", ""+(slots==-1?Config.getMessage("minebay.gui.rooms.room-item.slots-unlimited"):""+slots)));
-			}
-			
-		});
+		builder.addElement(28, new StaticGUIElement(Tools.createItem(Material.NAME_TAG, 1, 0, Config.getMessage("minebay.gui.room-settings.slots.name"), Config.getMessageList("minebay.gui.room-settings.slots.lore",
+						"slots", ""+(slots==-1?Config.getMessage("minebay.gui.rooms.room-item.slots-unlimited"):""+slots)))));
 		
 		AuctionRoom room = this;
 		
@@ -776,26 +762,26 @@ public class AuctionRoom {
 		ItemStack newItem = icon.clone();
 		ItemMeta im = newItem.getItemMeta();
 		im.setDisplayName(Config.getMessage("minebay.gui.rooms.room-item.name", "room-name", name, "room-id", ""+roomID));
-		List<String> lore = new ArrayList<>();
-		lore = Config.getMessageList("minebay.gui.rooms.room-item.lore",
+		List<String> lore = Config.getMessageList("minebay.gui.rooms.room-item.lore",
 				"owner", owner!=null?getOwnerName():Config.getMessage("minebay.gui.misc.none"),
 				"slots-limit", (slots==-1?Config.getMessage("minebay.gui.rooms.room-item.slots-unlimited"):""+slots),
 				"slots-occupied", ""+getOccupiedSlots(),
 				"tax", ""+taxshare,
 				"room-id", ""+roomID,
 				"can-edit", canEdit(p)?Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"");
-		
 		List<String> fLore = new ArrayList<>();
-		if(description!=null) {
-			for(String s2 : lore) {
-				if(!s2.contains("%description%")) {
-					fLore.add(s2);
-					continue;
-				}
+		for(String s2 : lore) {
+			if(!s2.contains("%description%")) {
+				fLore.add(s2);
+				continue;
+			}
+			if(description!=null) {
 				String fS = s2.replace("%description%", description);
 				OtherTools.advSplit(fS, 50).stream()
 						.map(s -> Config.getMessage("minebay.gui.rooms.room-item.description-linebreak-color")+s)
 						.forEach(fLore::add);
+			}else {
+				fLore.add(s2.replace("%description%", Config.getMessage("minebay.gui.misc.none")));
 			}
 		}
 		im.setLore(fLore);
