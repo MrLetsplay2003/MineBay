@@ -8,7 +8,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,9 +17,9 @@ public class MrCoreBukkitImpl {
 	
 	public static final String MRCORE_PLUGIN_NAME = "MrCore_BukkitImpl";
 
-	public static Plugin loadMrCore(JavaPlugin plugin) {
+	public static void loadMrCore(JavaPlugin plugin) {
 		if(Bukkit.getPluginManager().isPluginEnabled(MRCORE_PLUGIN_NAME)) {
-			return Bukkit.getPluginManager().getPlugin(MRCORE_PLUGIN_NAME);
+			return;
 		}
 		plugin.getLogger().info("Couldn't find "+MRCORE_PLUGIN_NAME+", so it seems like we need to download it from GitHub...");
 		try {
@@ -31,16 +30,20 @@ public class MrCoreBukkitImpl {
 			JSONObject asset = (JSONObject) assets.get(0);
 			String downloadL = (String) asset.get("browser_download_url");
 			File mrCoreFile = new File("plugins/"+MRCORE_PLUGIN_NAME+".jar");
+			if(mrCoreFile.exists()) {
+				plugin.getLogger().info("A file named \""+mrCoreFile.getName()+"\" already exists, assuming that MrCore was already loaded");
+				return;
+			}
 			plugin.getLogger().info("Downloading from "+downloadL+"...");
 			download(new URL(downloadL), mrCoreFile);
-			Plugin p = Bukkit.getPluginManager().loadPlugin(mrCoreFile);
+			Bukkit.getPluginManager().loadPlugin(mrCoreFile);
 			plugin.getLogger().info("Down-/loaded MrCore successfully");
 //			System.setProperty("https.protocols", oldProtocol);
-			return p;
+			return;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return;
 	}
 	
 	private static void download(URL url, File file) {
