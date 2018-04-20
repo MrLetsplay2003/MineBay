@@ -45,7 +45,7 @@ public class AuctionRooms {
 	}
 	
 	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){
-		AuctionRoom r = new AuctionRoom(id);
+		AuctionRoom r = new AuctionRoom(id, true);
 		r.setDefaultSettings(owner!=null?(Config.use_uuids?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
 		return r;
 	}
@@ -76,7 +76,7 @@ public class AuctionRooms {
 	}
 	
 	public static AuctionRoom getAuctionRoomByID(int id){
-		return new AuctionRoom(id);
+		return new AuctionRoom(id, false);
 	}
 	
 	public static int getNewRoomID(){

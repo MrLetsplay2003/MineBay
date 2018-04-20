@@ -59,7 +59,7 @@ public class AuctionRoom {
 	private FileConfiguration roomConfig;
 	
 	@SuppressWarnings("deprecation")
-	public AuctionRoom(int id) {
+	public AuctionRoom(int id, boolean isNew) {
 		roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
 		roomConfig = YamlConfiguration.loadConfiguration(roomFile);
 		this.owner = roomConfig.getString("owner");
@@ -84,10 +84,12 @@ public class AuctionRoom {
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.roomID = id;
-		this.roomGUI = buildRoomGUI();
-		this.roomSettingsGUI = buildSettingsMenu();
-		this.blockSelectGUI = buildBlockSelectionGUI();
-		this.customIconGUI = buildCustomIconGUI();
+		if(isNew) {
+			this.roomGUI = buildRoomGUI();
+			this.roomSettingsGUI = buildSettingsMenu();
+			this.blockSelectGUI = buildBlockSelectionGUI();
+			this.customIconGUI = buildCustomIconGUI();
+		}
 		if(s) saveAllSettings();
 	}
 	
@@ -519,6 +521,10 @@ public class AuctionRoom {
 			this.name = "Default Auction Room";
 		}
 		this.description=null;
+		this.roomGUI = buildRoomGUI();
+		this.roomSettingsGUI = buildSettingsMenu();
+		this.blockSelectGUI = buildBlockSelectionGUI();
+		this.customIconGUI = buildCustomIconGUI();
 		saveAllSettings();
 	}
 	
