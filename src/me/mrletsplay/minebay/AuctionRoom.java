@@ -84,7 +84,7 @@ public class AuctionRoom {
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.roomID = id;
-		if(isNew) {
+		if(!isNew) {
 			this.roomGUI = buildRoomGUI();
 			this.roomSettingsGUI = buildSettingsMenu();
 			this.blockSelectGUI = buildBlockSelectionGUI();
