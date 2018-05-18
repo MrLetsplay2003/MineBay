@@ -16,7 +16,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), true, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
+	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
 							   messages;
 	
 	public static boolean use_uuids;
@@ -95,7 +95,7 @@ public class Config {
 	private static CustomConfig loadMessageConfig(File f) {
 		CustomConfig cc;
 		try {
-			cc = new CustomConfig(f, false).loadConfig();
+			cc = new CustomConfig(f).loadConfig();
 			cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount% %type% §afrom §6%seller% §afor §6%price% %currency%");
 			cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
 			cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount% %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
