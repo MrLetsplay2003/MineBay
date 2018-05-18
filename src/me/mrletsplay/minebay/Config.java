@@ -16,7 +16,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), false, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
+	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), true, ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
 							   messages;
 	
 	public static boolean use_uuids;

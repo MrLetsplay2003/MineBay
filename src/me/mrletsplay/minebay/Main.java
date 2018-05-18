@@ -70,7 +70,7 @@ public class Main extends JavaPlugin{
 	}
 	
 	private boolean setupEconomy() {
-		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
 		if (economyProvider != null) {
 			econ = economyProvider.getProvider();
 		}
@@ -82,6 +82,7 @@ public class Main extends JavaPlugin{
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(command.getName().equalsIgnoreCase("minebay")){

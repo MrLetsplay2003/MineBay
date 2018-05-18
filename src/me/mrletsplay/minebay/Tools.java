@@ -69,6 +69,7 @@ public class Tools {
 		return i;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static ItemStack arrowRight(){
 		ItemStack i = new ItemStack(Material.BANNER);
 		BannerMeta m = (BannerMeta)i.getItemMeta();
@@ -81,7 +82,8 @@ public class Tools {
 		i.setItemMeta(m);
 		return i;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public static ItemStack arrowLeft(){
 		ItemStack i = new ItemStack(Material.BANNER);
 		BannerMeta m = (BannerMeta)i.getItemMeta();
@@ -94,7 +96,8 @@ public class Tools {
 		i.setItemMeta(m);
 		return i;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public static ItemStack arrowRight(DyeColor col){
 		ItemStack i = new ItemStack(Material.BANNER);
 		BannerMeta m = (BannerMeta)i.getItemMeta();
@@ -107,7 +110,8 @@ public class Tools {
 		i.setItemMeta(m);
 		return i;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public static ItemStack arrowLeft(DyeColor col){
 		ItemStack i = new ItemStack(Material.BANNER);
 		BannerMeta m = (BannerMeta)i.getItemMeta();
@@ -120,7 +124,8 @@ public class Tools {
 		i.setItemMeta(m);
 		return i;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public static ItemStack letterC(DyeColor col){
 		ItemStack i = new ItemStack(Material.BANNER);
 		BannerMeta m = (BannerMeta)i.getItemMeta();
@@ -135,7 +140,8 @@ public class Tools {
 		i.setItemMeta(m);
 		return i;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public static ItemStack createBanner(String name, DyeColor baseCol, Pattern... patterns){
 		ItemStack banner = new ItemStack(Material.BANNER);
 		BannerMeta bMeta = (BannerMeta)banner.getItemMeta();
