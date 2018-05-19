@@ -2,8 +2,7 @@ main: me.mrletsplay.minebay.Main
 name: MineBay
 version: 2.2
 author: MrLetsplay2003
-depend: [Vault]
-softdepend: [MrCore_BukkitImpl]
+softdepend: [MrCore_BukkitImpl, Vault, TokenEnchant]
 
 commands:
   minebay:

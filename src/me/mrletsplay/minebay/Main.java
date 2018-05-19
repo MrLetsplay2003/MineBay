@@ -14,11 +14,14 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.mrletsplay.minebay.economy.MineBayEconomy;
+import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
+import me.mrletsplay.minebay.economy.VaultEconomy;
 import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin{
 
-	public static Economy econ;
+	public static MineBayEconomy econ;
 	public static Plugin pl;
 	
 	public static String PLUGIN_VERSION;
@@ -70,11 +73,21 @@ public class Main extends JavaPlugin{
 	}
 	
 	private boolean setupEconomy() {
-		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
-		if (economyProvider != null) {
-			econ = economyProvider.getProvider();
+		String economy = Config.economy;
+		getLogger().info("Using "+economy+" economy");
+		switch(economy.toLowerCase()) {
+			case "tokenenchant":
+				econ = new TokenEnchantEconomy();
+				return true;
+			case "vault":
+				RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+				if (economyProvider != null) {
+					econ = new VaultEconomy(economyProvider.getProvider());
+				}
+				return (econ != null);
+			default:
+				throw new IllegalArgumentException("Invalid economy \""+economy+"\" provided");
 		}
-		return (econ != null);
     }
 	
 	private void initConfig(){

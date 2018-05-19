@@ -62,7 +62,7 @@ public class SellItem{
 	
 	public ItemStack getSellItemStack(Player p){
 		return Tools.createItem(item, item.getItemMeta().getDisplayName(), Config.getMessageList("minebay.gui.room.sold-item.lore", 
-					"price", price+" "+Main.econ.currencyNamePlural(),
+					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller-name", getSellerName(),
 					"item-id", ""+id,
 					"retract-sale", (isSeller(p)?Config.getMessage("minebay.gui.room.sold-item.retract-sale"):"")
@@ -71,7 +71,7 @@ public class SellItem{
 	
 	public ItemStack getConfirmItemStack(){
 		return Tools.createItem(Tools.createBanner("", DyeColor.YELLOW), Config.getMessage("minebay.gui.confirm.buy-item.info.name"), Config.getMessageList("minebay.gui.confirm.buy-item.info.lore", 
-					"price", price+" "+Main.econ.currencyNamePlural(),
+					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller", getSellerName(),
 					"item-id", ""+id,
 					"room-id", ""+ar.getRoomID()));

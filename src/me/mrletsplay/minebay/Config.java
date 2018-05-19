@@ -21,7 +21,7 @@ public class Config {
 	
 	public static boolean use_uuids;
 	
-	public static String prefix, mbString;
+	public static String prefix, mbString, economy;
 	
 	public static void saveConfig(){
 		try{
@@ -86,6 +86,8 @@ public class Config {
 		use_uuids = config.getBoolean("minebay.general.use-uuids")&&Bukkit.getOnlineMode();
 		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
+		economy = config.getString("minebay.general.economy", "Vault", true);
+		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant");
 		saveConfig();
 		
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));
@@ -243,8 +245,7 @@ public class Config {
 			cc.addDefault("minebay.gui.confirm.room-sell.name", "§8Sell Room");
 			cc.addDefault("minebay.gui.confirm.room-sell.lore", Arrays.asList(
 																			"§8Worth: §7%price%",
-																			"§8Room ID: §7%room-id%",
-																			"§8Amount: §7%amount%"));
+																			"§8Room ID: §7%room-id%"));
 			
 			cc.addDefault("minebay.gui.confirm.confirm.name", "§aConfirm");
 			cc.addDefault("minebay.gui.confirm.confirm.lore", Arrays.asList(
@@ -260,6 +261,10 @@ public class Config {
 																			"§8Seller: §7%seller%",
 																			"§8Product ID: §7%item-id%",
 																			"§8Auction Room: §7%room-id%"));
+			
+			cc.addDefault("minebay.economy.tokenenchant.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% token(s), needed: %needed-balance% token(s))");
+			cc.addDefault("minebay.economy.tokenenchant.currency-name.singular", "token");
+			cc.addDefault("minebay.economy.tokenenchant.currency-name.plural", "tokens");
 			
 			cc.applyDefaults(true, true);
 			
@@ -314,14 +319,14 @@ public class Config {
 	}
 	
 	public static String simpleReplace(String s){
-		String currencyName = Main.econ.currencyNamePlural();
+		String currencyName = Main.econ.getCurrencyNamePlural();
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%prefix%", config.getString("minebay.prefix"))
 				.replace("%mbstring%", config.getString("minebay.mbstring")))
 				.replace("%maxchars%", ""+config.getInt("minebay.user-rooms.max-name-length"))
 				.replace("%slotprice%", ""+config.getInt("minebay.user-rooms.slot-price"));
 		if(currencyName!=null){
-			s = s.replace("%currency%", Main.econ.currencyNamePlural());
+			s = s.replace("%currency%", Main.econ.getCurrencyNamePlural());
 		}else{
 			s = s.replace("%currency%", "");
 		}

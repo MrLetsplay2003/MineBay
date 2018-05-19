@@ -14,6 +14,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
@@ -26,7 +27,6 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
-import net.milkbowl.vault.economy.EconomyResponse;
 
 public class GUIs {
 	
@@ -192,15 +192,15 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				EconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.room-price"));
-				if(re.transactionSuccess()){
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.room-price"));
+				if(re.isTransactionSuccess()){
 					CancelTask.cancelForPlayer(e.getPlayer());
 					AuctionRoom r = AuctionRooms.createAuctionRoom(e.getPlayer(), AuctionRooms.getNewRoomID(), false);
 					MineBay.updateRoomSelection();
 					e.getPlayer().openInventory(r.getSettingsGUI().getForPlayer(e.getPlayer()));
 					e.getPlayer().sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.room-created"), r));
 				}else{
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.room-create.error.general").replace("%error%", re.errorMessage));
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.room-create.error.general").replace("%error%", re.getError()));
 					e.getPlayer().closeInventory();
 				}
 				e.setCancelled(true);
@@ -219,8 +219,8 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				EconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-price")*amount);
-				if(re.transactionSuccess()){
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-price")*amount);
+				if(re.isTransactionSuccess()){
 					r.setSlots(r.getSlots()+amount);
 					r.saveAllSettings();
 					r.updateSettings();
@@ -228,6 +228,9 @@ public class GUIs {
 					if(Config.config.getBoolean("minebay.general.user-rooms-settings.slot-notify")){
 						e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-buy.success", "slotamount", ""+amount, "price", ""+Config.config.getInt("minebay.user-rooms.slot-price")*amount));
 					}
+				}else{
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.room-create.error.general").replace("%error%", re.getError()));
+					e.getPlayer().closeInventory();
 				}
 				e.getPlayer().openInventory(r.getSettingsGUI().getForPlayer(e.getPlayer()));
 				e.setCancelled(true);
@@ -246,14 +249,14 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				EconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount);
-				if(re.transactionSuccess()){
+				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount);
+				if(re.isTransactionSuccess()){
 					r.setSlots(r.getSlots()-amount);
 					r.saveAllSettings();
 					r.updateSettings();
 					MineBay.updateRoomSelection();
 					if(Config.config.getBoolean("minebay.general.user-rooms-settings.slot-notify")){
-						e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-sell.success", "slotamount%", ""+amount, "price", ""+Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount));
+						e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-sell.success", "slotamount", ""+amount, "price", ""+Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount));
 					}
 				}
 				e.getPlayer().openInventory(r.getSettingsGUI().getForPlayer(e.getPlayer()));
@@ -269,14 +272,15 @@ public class GUIs {
 		ItemStack baseItem = Tools.createItem(Material.NAME_TAG, 1, 0,
 				Config.getMessage("minebay.gui.confirm.room-sell.name"),
 				Config.getMessageList("minebay.gui.confirm.room-sell.lore",
-						"price", ""+(sl+pr)));
+						"price", ""+(sl+pr),
+						"room-id", ""+r.getRoomID()));
 		return getConfirmGUI(baseItem, new GUIElementAction() {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
 				int worth = r.getWorth();
-				EconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), worth);
-				if(re.transactionSuccess()){
+				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), worth);
+				if(re.isTransactionSuccess()){
 					AuctionRooms.deleteAuctionRoom(r.getRoomID());
 					for(Player pl : Bukkit.getOnlinePlayers()){
 						Inventory oI = MineBay.getOpenInv(pl);
@@ -296,7 +300,7 @@ public class GUIs {
 					e.getPlayer().closeInventory();
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell-room.success").replace("%price%", ""+worth));
 				}else{
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell-room.error").replace("%error%", re.errorMessage));
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell-room.error").replace("%error%", re.getError()));
 				}
 				e.setCancelled(true);
 			}
@@ -310,7 +314,7 @@ public class GUIs {
 			@Override
 			public void onAction(GUIElementActionEvent e) {
 				AuctionRoom r = sellIt.getRoom();
-				EconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice().doubleValue());
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice().doubleValue());
 				OfflinePlayer seller;
 				if(Config.use_uuids) {
 					seller = Bukkit.getOfflinePlayer(UUID.fromString(sellIt.getSeller()));
@@ -327,13 +331,13 @@ public class GUIs {
 				}
 				double sellerAm = round((double)((100-r.getTaxshare())*0.01)*sellIt.getPrice().doubleValue(),5);
 				double ownerAm = round((double)(r.getTaxshare()*0.01)*sellIt.getPrice().doubleValue(),5);
-				EconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
-				EconomyResponse r3 = null;
+				MineBayEconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
+				MineBayEconomyResponse r3 = null;
 				if(owner!=null){
 					r3 = Main.econ.depositPlayer(owner, ownerAm);
 				}
-				if(re.transactionSuccess() && r2.transactionSuccess()){
-					if((owner!=null && r3!=null && r3.transactionSuccess()) || owner==null){
+				if(re.isTransactionSuccess() && r2.isTransactionSuccess()){
+					if((owner!=null && r3!=null && r3.isTransactionSuccess()) || owner==null){
 						e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.success"), sellIt, r));
 						r.removeSellItem(sellIt.getID());
 						r.updateMineBay();

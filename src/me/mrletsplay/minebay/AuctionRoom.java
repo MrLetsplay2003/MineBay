@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.io.Files;
 
+import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
@@ -41,7 +42,6 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
 import me.mrletsplay.mrcore.misc.OtherTools;
-import net.milkbowl.vault.economy.EconomyResponse;
 
 public class AuctionRoom {
 
@@ -476,8 +476,8 @@ public class AuctionRoom {
 			public void onAction(GUIElementActionEvent e) {
 				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR)) {
 					int price = isDefaultRoom()?0:Config.config.getInt("minebay.user-rooms.custom-icon-price");
-					EconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), price);
-					if(re.transactionSuccess()){
+					MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), price);
+					if(re.isTransactionSuccess()){
 						setIcon(e.getItemClickedWith());
 						saveAllSettings();
 						updateSettings();
@@ -489,7 +489,7 @@ public class AuctionRoom {
 						e.getPlayer().openInventory(getSettingsGUI().getForPlayer(e.getPlayer()));
 						e.getPlayer().sendMessage(Config.getMessage("minebay.info.buy-icon.success").replace("%type%", getIcon().getType().name().toLowerCase().replace("_", " ")).replace("%price%", ""+price));
 					}else{
-						e.getPlayer().sendMessage(Config.getMessage("minebay.info.buy-icon.error").replace("%error%", re.errorMessage));
+						e.getPlayer().sendMessage(Config.getMessage("minebay.info.buy-icon.error").replace("%error%", re.getError()));
 					}
 				}
 				e.setCancelled(true);
@@ -816,7 +816,7 @@ public class AuctionRoom {
 		};
 
 		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
-		for(int i = 0; i < 6*9; i++) {
+		for(int i = 45; i < 6*9; i++) {
 			builder.addElement(i, gPane);
 		}
 		
