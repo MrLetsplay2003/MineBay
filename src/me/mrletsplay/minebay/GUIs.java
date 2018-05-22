@@ -23,6 +23,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilderMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementActionEvent;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIHolder;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
@@ -102,6 +103,10 @@ public class GUIs {
 				return AuctionRooms.getAuctionRoomsByOwner(owner);
 			}
 		});
+		
+		HashMap<String, Object> props = new HashMap<>();
+		props.put("minebay_type", "auction rooms");
+		builder.setProperties(props);
 		return builder;
 	}
 
@@ -287,11 +292,11 @@ public class GUIs {
 						if(oI == null) continue;
 						GUI gui2 = GUIUtils.getGUI(oI);
 						if(gui2 == null) continue;
-						HashMap<String, Object> props = gui2.getHolder().getProperties();
-						String t = (String) props.get("minebay_type");
+						GUIHolder holder = (GUIHolder) oI.getHolder();
+						String t = (String) holder.getProperty("minebay_type");
 						if(t==null) continue;
 						if(t.equals("auction room")) {
-							if(((int) props.get("minebay_auctionroom_id")) == r.getRoomID()) {
+							if(((int) holder.getProperty("minebay_auctionroom_id")) == r.getRoomID()) {
 								pl.closeInventory();
 							}
 						}

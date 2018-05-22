@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>MineBay</groupId>
   <artifactId>MineBay</artifactId>
-  <version>2.0</version>
+  <version>2.3</version>
   
   <repositories>
    	<repository>
@@ -37,7 +37,7 @@
   	<dependency>
   		<groupId>com.github.mrletsplay2003</groupId>
   		<artifactId>MrCore</artifactId>
-  		<version>1.7</version>
+  		<version>master-SNAPSHOT</version>
   	</dependency>
  </dependencies>
 </project>

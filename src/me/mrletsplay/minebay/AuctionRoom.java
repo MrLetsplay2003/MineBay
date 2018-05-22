@@ -37,6 +37,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIDragDropListener;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementActionEvent;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIHolder;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
@@ -702,15 +703,6 @@ public class AuctionRoom {
 		return roomSettingsGUI;
 	}
 	
-	public static int getMineBayPage(Inventory inv){
-		try{
-			int page = Integer.parseInt(Config.onlyDigitsNoColor(inv.getItem(46).getItemMeta().getLore().get(0)));
-			return page;
-		}catch(Exception e){
-			return -1;
-		}
-	}
-	
 	public void updateMineBay(){
 		try{
 			for(Player pl : Bukkit.getOnlinePlayers()){
@@ -718,14 +710,19 @@ public class AuctionRoom {
 				if(oI == null) continue;
 				GUI gui = GUIUtils.getGUI(oI);
 				if(gui == null) continue;
-				HashMap<String, Object> props = gui.getHolder().getProperties();
-				String t = (String) props.get("minebay_type");
+				GUIHolder holder = (GUIHolder) oI.getHolder();
+				String t = (String) holder.getProperty("minebay_type");
 				if(t == null) continue;
-				if(t.equals("auction room "+roomID)){
-					Inventory mbInv = pl.getOpenInventory().getTopInventory();
-					int page = getMineBayPage(mbInv);
-					if(page!=-1){
-						pl.openInventory(getMineBayInv(page, pl));
+				if(t.equals("auction room")){
+					if(((int) holder.getProperty("minebay_auctionroom_id")) == roomID) {
+						try {
+							int page = GUIMultiPage.getPage(oI);
+							if(page!=-1){
+								MineBay.changeInv(oI, getMineBayInv(0, pl));
+							}
+						}catch(Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -747,11 +744,11 @@ public class AuctionRoom {
 				if(oI == null) continue;
 				GUI gui = GUIUtils.getGUI(oI);
 				if(gui == null) continue;
-				HashMap<String, Object> props = gui.getHolder().getProperties();
-				String t = (String) props.get("minebay_type");
+				GUIHolder holder = (GUIHolder) oI.getHolder();
+				String t = (String) holder.getProperty("minebay_type");
 				if(t == null) continue;
 				if(t.equals("settings "+roomID)){
-					pl.openInventory(roomSettingsGUI.getForPlayer(pl));
+					MineBay.changeInv(oI, roomSettingsGUI.getForPlayer(pl));
 				}
 			}
 		}catch(ConcurrentModificationException e){
