@@ -12,7 +12,7 @@ public class UpdateChecker {
 
 	public static void checkForUpdate(Player... pls){
 		try {
-			URL updUrl = new URL("http://mrletsplay2003.bplaced.com/plugin-data/MineBay/version.txt");
+			URL updUrl = new URL("https://graphite-official.com/api/plugin-data/MineBay/version.txt");
 			BufferedReader r = new BufferedReader(new InputStreamReader(updUrl.openStream()));
 			String ver = r.readLine();
 			if(!ver.equalsIgnoreCase(Main.PLUGIN_VERSION)){
