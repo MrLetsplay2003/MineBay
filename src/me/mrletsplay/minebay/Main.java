@@ -24,7 +24,7 @@ public class Main extends JavaPlugin{
 	public static MineBayEconomy econ;
 	public static Plugin pl;
 	
-	public static String PLUGIN_VERSION;
+	public static String PLUGIN_VERSION; //TODO
 	
 	/**
 	 * Sell button
