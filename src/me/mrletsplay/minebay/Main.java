@@ -10,7 +10,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,7 +21,7 @@ import net.milkbowl.vault.economy.Economy;
 public class Main extends JavaPlugin{
 
 	public static MineBayEconomy econ;
-	public static Plugin pl;
+	public static JavaPlugin pl;
 	
 	public static String PLUGIN_VERSION;
 	
@@ -98,6 +97,7 @@ public class Main extends JavaPlugin{
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		((Player)sender).getInventory().addItem(Tools.createItem(Material.GOLD_AXE, 1, 0, "§cTest", "§6Test!"));
 		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;
@@ -192,6 +192,16 @@ public class Main extends JavaPlugin{
 						}else{
 							sendCommandHelp(p);
 						}
+					}else if(args[0].equalsIgnoreCase("filter")) {
+						if(args.length == 1) {
+							MineBayFilter.filterUI.sendToPlayer(p);
+						}else if(args[1].equalsIgnoreCase("remove")) {
+							
+						}else if(args[1].equalsIgnoreCase("add")) {
+							
+						}else {
+							sendCommandHelp(p);
+						}
 					}else{
 						sendCommandHelp(p);
 						return true;
@@ -221,6 +231,11 @@ public class Main extends JavaPlugin{
 		}
 		if(p.hasPermission("minebay.version")){
 			p.sendMessage("§7/minebay version §8- Shows the MineBay version and checks for an update (if enabled)");
+		}
+		if(p.hasPermission("minebay.filter")) {
+			p.sendMessage("§7/minebay filter §8- Shows all the items on the filter");
+			p.sendMessage("§7/minebay filter add [Excluded comparison parameters...] §8- Adds an item to the filter");
+			p.sendMessage("§7/minebay filter remove <index> §8- Removed the item at the specified index from the filter");
 		}
 	}
 	

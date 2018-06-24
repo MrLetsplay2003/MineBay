@@ -18,6 +18,7 @@ import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuildEvent;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilder;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilderMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
@@ -79,7 +80,8 @@ public class GUIs {
 		builder.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(Player p, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildEvent event, AuctionRoom room) {
+				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {
 							
@@ -96,7 +98,7 @@ public class GUIs {
 			}
 			
 			@Override
-			public List<AuctionRoom> getItems() {
+			public List<AuctionRoom> getItems(GUIBuildEvent event) {
 				if(owner == null) {
 					return AuctionRooms.getAuctionRooms();
 				}
@@ -119,7 +121,8 @@ public class GUIs {
 		builderBase.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(Player p, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildEvent event, AuctionRoom room) {
+				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {
 							
@@ -152,7 +155,7 @@ public class GUIs {
 			}
 			
 			@Override
-			public List<AuctionRoom> getItems() {
+			public List<AuctionRoom> getItems(GUIBuildEvent event) {
 				if(owner == null) {
 					return AuctionRooms.getAuctionRooms();
 				}

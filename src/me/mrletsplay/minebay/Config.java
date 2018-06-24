@@ -8,20 +8,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.material.MaterialData;
 
-import me.mrletsplay.mrcore.config.CustomConfig;
+import me.mrletsplay.minebay.MineBayFilter.MineBayFilterItem;
+import me.mrletsplay.minebay.MineBayFilter.MineBayFilterObjectMapper;
+import me.mrletsplay.mrcore.bukkitimpl.BukkitCustomConfig;
+import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.MaterialLookup;
 import me.mrletsplay.mrcore.config.CustomConfig.ConfigSaveProperty;
 import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static CustomConfig config = new CustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
+	public static BukkitCustomConfig config = (BukkitCustomConfig) new BukkitCustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
 							   messages;
 	
-	public static boolean use_uuids;
+	public static boolean use_uuids, allow_tax_change;
 	
 	public static String prefix, mbString, economy;
+	public static List<MineBayFilterItem> itemFilter;
 	
 	public static void saveConfig(){
 		try{
@@ -40,6 +47,8 @@ public class Config {
 	}
 	
 	public static void init(){
+		config.registerMapper(new MineBayFilterObjectMapper());
+		
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
 		config.addDefault("minebay.general.max-type-time-seconds", -1);
@@ -52,7 +61,6 @@ public class Config {
 		config.addDefault("minebay.general.update-check-on-join", true);
 		config.addDefault("minebay.general.update-check-on-command", true);
 		config.addDefault("minebay.general.user-rooms-settings.change-icon-remove-item", true);
-		config.addDefault("minebay.general.use-uuids", true);
 		List<String> aliases = new ArrayList<>();
 		aliases.add("/market");
 		aliases.add("/mb");
@@ -83,10 +91,15 @@ public class Config {
 		
 		config.applyDefaults(true);
 		
-		use_uuids = config.getBoolean("minebay.general.use-uuids")&&Bukkit.getOnlineMode();
+		itemFilter = config.getMappableList("minebay.general.item-filter", MineBayFilterItem.class, Arrays.asList(
+					new MineBayFilterItem(Tools.createItem(Material.GOLD_AXE, 1, 0, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
+				), true);
+		
+		use_uuids = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
 		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		economy = config.getString("minebay.general.economy", "Vault", true);
+		allow_tax_change = config.getBoolean("minebay.general.allow-tax-changing", true, true);
 		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant");
 		saveConfig();
 		
@@ -94,15 +107,15 @@ public class Config {
 		saveMessages();
 	}
 	
-	private static CustomConfig loadMessageConfig(File f) {
-		CustomConfig cc;
+	private static BukkitCustomConfig loadMessageConfig(File f) {
+		BukkitCustomConfig cc;
 		try {
-			cc = new CustomConfig(f).loadConfig();
-			cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount% %type% §afrom §6%seller% §afor §6%price% %currency%");
+			cc = (BukkitCustomConfig) new BukkitCustomConfig(f).loadConfig();
+			cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount%x %type% §afrom §6%seller% §afor §6%price% %currency%");
 			cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
-			cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount% %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
-			cc.addDefault("minebay.info.purchase.room-owner.success", "%prefix% §6%buyer% §ahas bought §6%amount% %type% §afor §6%price% %currency% §ain your room on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
-			cc.addDefault("minebay.info.sell.success", "%prefix% §aSuccessfully put §6%amount% %type% §afor §6%price% %currency% §afor sale on %mbstring%");
+			cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
+			cc.addDefault("minebay.info.purchase.room-owner.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §ain your room on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
+			cc.addDefault("minebay.info.sell.success", "%prefix% §aSuccessfully put §6%amount%x %type% §afor §6%price% %currency% §afor sale on %mbstring%");
 			cc.addDefault("minebay.info.sell.type-in-price", "%prefix% §aType in the price for the item");
 			cc.addDefault("minebay.info.sell.action-cancelled", "%prefix% §cOld sell action cancelled!");
 			cc.addDefault("minebay.info.sell.error.invalid-price", "%prefix% §aType in another price");
@@ -145,6 +158,9 @@ public class Config {
 			cc.addDefault("minebay.info.user-rooms-disabled", "%prefix% §cUser rooms are disabled!");
 			cc.addDefault("minebay.info.reload-complete", "%prefix% §aReload complete");
 			cc.addDefault("minebay.info.reload-no-permission", "%prefix% §cNo permission");
+			cc.addDefault("minebay.info.filter.header", "%prefix% §7§lCurrent filter:");
+			cc.addDefault("minebay.info.filter.line", "§8- §7%type-or-name% §r(%type%)");
+			cc.addDefault("minebay.info.tax-changing-disabled", "§cTax changing is currently disabled");
 			
 			cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
 			cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");
@@ -190,14 +206,18 @@ public class Config {
 																			"§8Shift-left click to sell 5 slots"));
 			cc.addDefault("minebay.gui.room-settings.tax.name", "§7Tax");
 			cc.addDefault("minebay.gui.room-settings.tax.lore", Arrays.asList("§8Currently: §7%tax%"));
+			cc.addDefault("minebay.gui.room-settings.tax-increase.disabled", "§cChanging your tax is currently not allowed");
 			cc.addDefault("minebay.gui.room-settings.tax-increase.name", "§7Increase Tax");
 			cc.addDefault("minebay.gui.room-settings.tax-increase.lore", Arrays.asList(
 																			"§8Left click to increase tax by 1%",
-																			"§8Shift-left click to increase tax by 10%"));
+																			"§8Shift-left click to increase tax by 10%",
+																			"%tax-changing-disabled%"));
+			cc.addDefault("minebay.gui.room-settings.tax-decrease.disabled", "§cChanging your tax is currently not allowed");
 			cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§7Decrease Tax");
 			cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
 																			"§8Left click to decrease tax by 1%",
-																			"§8Shift-left click to decrease tax by 10%"));
+																			"§8Shift-left click to decrease tax by 10%",
+																			"%tax-changing-disabled%"));
 			cc.addDefault("minebay.gui.room-settings.room-delete.name", "§cDelete Room");
 			cc.addDefault("minebay.gui.room-settings.room-delete.lore", Arrays.asList(
 																			"§8Worth: §7%worth%",
@@ -275,6 +295,11 @@ public class Config {
 		return null;
 	}
 	
+	public static String getFriendlyTypeName(MaterialData data) {
+		MaterialLookup lookup = MaterialLookup.byMaterial(data);
+		return lookup != null ? lookup.getFriendlyName() : data.getItemType().toString().toLowerCase().replace("_", " ");
+	}
+	
 //	private static void importLangFile(String lang) {
 //		if(!new File(Main.pl.getDataFolder(), "/lang/"+lang+".yml").exists()) {
 //			Main.pl.saveResource("lang/"+lang+".yml", false);
@@ -336,7 +361,7 @@ public class Config {
 	public static String replaceForSellItem(String s, SellItem it, AuctionRoom r){
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%amount%", ""+it.getItem().getAmount())
-				.replace("%type%", it.getItem().getType().toString().toLowerCase().replace("_", " "))
+				.replace("%type%", it.getItem().hasItemMeta() && it.getItem().getItemMeta().hasDisplayName() ? it.getItem().getItemMeta().getDisplayName() : Config.getFriendlyTypeName(it.getItem().getData()))
 				.replace("%seller%", it.getSellerName())
 				.replace("%price%", ""+it.getPrice()))
 				.replace("%roomtax%", ""+r.getTaxshare());
@@ -349,7 +374,7 @@ public class Config {
 				.replace("%taxshare%", ""+r.getTaxshare())
 				.replace("%slots%", ""+r.getSlots())
 				.replace("%roomid%", ""+r.getRoomID())
-				.replace("%iconmaterial%", ""+r.getIcon().getType().name().toLowerCase().replace("_", " ")));
+				.replace("%iconmaterial%", Config.getFriendlyTypeName(r.getIcon().getData())));
 		return s;
 	}
 	
