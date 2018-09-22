@@ -17,8 +17,6 @@ import me.mrletsplay.minebay.economy.MineBayEconomy;
 import me.mrletsplay.minebay.economy.ReserveEconomy;
 import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
 import me.mrletsplay.minebay.economy.VaultEconomy;
-import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
-import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
 
 public class Main extends JavaPlugin{
 
@@ -102,7 +100,7 @@ public class Main extends JavaPlugin{
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		((Player)sender).getInventory().addItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"));
+//		((Player)sender).getInventory().addItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"));
 		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;
