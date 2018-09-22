@@ -99,7 +99,7 @@ public class Config {
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		economy = config.getString("minebay.general.economy", "Vault", true);
 		allow_tax_change = config.getBoolean("minebay.general.allow-tax-changing", true, true);
-		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant");
+		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant, Reserve");
 		saveConfig();
 		
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));

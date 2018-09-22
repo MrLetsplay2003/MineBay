@@ -14,11 +14,11 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.mrletsplay.minebay.economy.MineBayEconomy;
+import me.mrletsplay.minebay.economy.ReserveEconomy;
 import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
 import me.mrletsplay.minebay.economy.VaultEconomy;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
-import net.milkbowl.vault.economy.Economy;
 
 public class Main extends JavaPlugin{
 
@@ -81,11 +81,14 @@ public class Main extends JavaPlugin{
 				econ = new TokenEnchantEconomy();
 				return true;
 			case "vault":
-				RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				if (economyProvider != null) {
 					econ = new VaultEconomy(economyProvider.getProvider());
 				}
 				return (econ != null);
+			case "reserve":
+				econ = new ReserveEconomy();
+				return true;
 			default:
 				throw new IllegalArgumentException("Invalid economy \""+economy+"\" provided");
 		}
