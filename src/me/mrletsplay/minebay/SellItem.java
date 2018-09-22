@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
 
 public class SellItem{
 
@@ -61,7 +63,7 @@ public class SellItem{
 	}
 	
 	public ItemStack getSellItemStack(Player p){
-		return Tools.createItem(item, item.getItemMeta().getDisplayName(), Config.getMessageList("minebay.gui.room.sold-item.lore", 
+		return ItemUtils.createItem(item, item.getItemMeta().getDisplayName(), Config.getMessageList("minebay.gui.room.sold-item.lore", 
 					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller-name", getSellerName(),
 					"item-id", ""+id,
@@ -70,7 +72,7 @@ public class SellItem{
 	}
 	
 	public ItemStack getConfirmItemStack(){
-		return Tools.createItem(Tools.createBanner("", DyeColor.YELLOW), Config.getMessage("minebay.gui.confirm.buy-item.info.name"), Config.getMessageList("minebay.gui.confirm.buy-item.info.lore", 
+		return ItemUtils.createItem(ItemUtils.createBanner("", VersionedDyeColor.YELLOW), Config.getMessage("minebay.gui.confirm.buy-item.info.name"), Config.getMessageList("minebay.gui.confirm.buy-item.info.lore", 
 					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller", getSellerName(),
 					"item-id", ""+id,

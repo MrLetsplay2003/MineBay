@@ -4,13 +4,13 @@ import org.bukkit.OfflinePlayer;
 
 public interface MineBayEconomy {
 
-	MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount);
+	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount);
 
-	MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount);
+	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount);
 	
-	String getCurrencyNameSingular();
+	public String getCurrencyNameSingular();
 	
-	String getCurrencyNamePlural();
+	public String getCurrencyNamePlural();
 	
 	public static interface MineBayEconomyResponse {
 		

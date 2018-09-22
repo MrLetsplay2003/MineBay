@@ -9,13 +9,12 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.material.MaterialData;
 
 import me.mrletsplay.minebay.MineBayFilter.MineBayFilterItem;
 import me.mrletsplay.minebay.MineBayFilter.MineBayFilterObjectMapper;
 import me.mrletsplay.mrcore.bukkitimpl.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
-import me.mrletsplay.mrcore.bukkitimpl.MaterialLookup;
+import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
 import me.mrletsplay.mrcore.config.CustomConfig.ConfigSaveProperty;
 import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
 import net.md_5.bungee.api.ChatColor;
@@ -92,7 +91,7 @@ public class Config {
 		config.applyDefaults(true);
 		
 		itemFilter = config.getMappableList("minebay.general.item-filter", MineBayFilterItem.class, Arrays.asList(
-					new MineBayFilterItem(Tools.createItem(Material.GOLD_AXE, 1, 0, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
+					new MineBayFilterItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
 				), true);
 		
 		use_uuids = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
@@ -286,6 +285,8 @@ public class Config {
 			cc.addDefault("minebay.economy.tokenenchant.currency-name.singular", "token");
 			cc.addDefault("minebay.economy.tokenenchant.currency-name.plural", "tokens");
 			
+			cc.addDefault("minebay.economy.reserve.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% %currency-name-plural%, needed: %needed-balance% %currency-name-plural%)");
+			
 			cc.applyDefaults(true, true);
 			
 			return cc;
@@ -295,9 +296,10 @@ public class Config {
 		return null;
 	}
 	
-	public static String getFriendlyTypeName(MaterialData data) {
-		MaterialLookup lookup = MaterialLookup.byMaterial(data);
-		return lookup != null ? lookup.getFriendlyName() : data.getItemType().toString().toLowerCase().replace("_", " ");
+	public static String getFriendlyTypeName(Material material) {
+//		MaterialLookup lookup = MaterialLookup.byMaterial(data);
+//		return lookup != null ? lookup.getFriendlyName() : data.getItemType().toString().toLowerCase().replace("_", " ");
+		return material.name().toLowerCase().replace("_", " "); // TODO
 	}
 	
 //	private static void importLangFile(String lang) {
@@ -361,7 +363,7 @@ public class Config {
 	public static String replaceForSellItem(String s, SellItem it, AuctionRoom r){
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%amount%", ""+it.getItem().getAmount())
-				.replace("%type%", it.getItem().hasItemMeta() && it.getItem().getItemMeta().hasDisplayName() ? it.getItem().getItemMeta().getDisplayName() : Config.getFriendlyTypeName(it.getItem().getData()))
+				.replace("%type%", it.getItem().hasItemMeta() && it.getItem().getItemMeta().hasDisplayName() ? it.getItem().getItemMeta().getDisplayName() : Config.getFriendlyTypeName(it.getItem().getType()))
 				.replace("%seller%", it.getSellerName())
 				.replace("%price%", ""+it.getPrice()))
 				.replace("%roomtax%", ""+r.getTaxshare());
@@ -374,7 +376,7 @@ public class Config {
 				.replace("%taxshare%", ""+r.getTaxshare())
 				.replace("%slots%", ""+r.getSlots())
 				.replace("%roomid%", ""+r.getRoomID())
-				.replace("%iconmaterial%", Config.getFriendlyTypeName(r.getIcon().getData())));
+				.replace("%iconmaterial%", Config.getFriendlyTypeName(r.getIcon().getType())));
 		return s;
 	}
 	

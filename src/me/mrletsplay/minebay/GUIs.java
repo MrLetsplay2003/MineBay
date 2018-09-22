@@ -6,11 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,6 +17,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuildEvent;
+import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuildPageItemEvent;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilder;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilderMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
@@ -29,22 +28,25 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
+import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
 
 public class GUIs {
 	
 	private static GUIBuilderMultiPage<AuctionRoom> getAuctionRoomsBuilder(String owner){
 		GUIBuilderMultiPage<AuctionRoom> builder = new GUIBuilderMultiPage<>(Config.prefix, 6);
-		builder.addPreviousPageItem(52, ItemUtils.createItem(ItemUtils.arrowLeft(DyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
-		builder.addNextPageItem(53, ItemUtils.createItem(ItemUtils.arrowRight(DyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
+		builder.addPreviousPageItem(52, ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
+		builder.addNextPageItem(53, ItemUtils.createItem(ItemUtils.arrowRight(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
 		builder.addPageSlotsInRange(0, 44);
-		builder.addElement(49, new StaticGUIElement(Tools.createItem(Material.STAINED_CLAY, 1, 5, Config.getMessage("minebay.gui.rooms.create-room")))
+		builder.addElement(49, new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.LIME_STAINED_CLAY, 1, Config.getMessage("minebay.gui.rooms.create-room")))
 				.setAction(new GUIElementAction() {
 					
 					@Override
 					public void onAction(GUIElementActionEvent e) {
 						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || e.getPlayer().hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(e.getPlayer())){
-								e.getPlayer().openInventory(buyRoomGUI().getForPlayer(e.getPlayer()));
+								Inventory inv = buyRoomGUI().getForPlayer(e.getPlayer());
+								e.getPlayer().openInventory(inv);
 							}else{
 								e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.room-create.error.too-many-rooms")));
 							}
@@ -54,7 +56,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		builder.addElement(50, new StaticGUIElement(Tools.createItem(Material.BANNER, 1, 10, Config.getMessage("minebay.gui.rooms.list-all")))
+		builder.addElement(50, new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.GREEN_BANNER, 1, Config.getMessage("minebay.gui.rooms.list-all")))
 				.setAction(new GUIElementAction() {
 					
 					@Override
@@ -63,7 +65,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		builder.addElement(51, new StaticGUIElement(Tools.createItem(Material.BANNER, 1, 14, Config.getMessage("minebay.gui.rooms.list-self")))
+		builder.addElement(51, new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.RED_BANNER, 1, Config.getMessage("minebay.gui.rooms.list-self")))
 				.setAction(new GUIElementAction() {
 					
 					@Override
@@ -72,7 +74,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		builder.addElement(45, gPane);
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
@@ -80,7 +82,7 @@ public class GUIs {
 		builder.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(GUIBuildEvent event, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildPageItemEvent event, AuctionRoom room) {
 				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {
@@ -108,7 +110,7 @@ public class GUIs {
 		
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("minebay_type", "auction rooms");
-		builder.setProperties(props);
+		builder.setDefaultProperties(props);
 		return builder;
 	}
 
@@ -121,7 +123,7 @@ public class GUIs {
 		builderBase.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(GUIBuildEvent event, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildPageItemEvent event, AuctionRoom room) {
 				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {
@@ -166,21 +168,22 @@ public class GUIs {
 	}
 	
 	public static GUI getConfirmGUI(ItemStack baseItem, GUIElementAction confirm){
-		GUIBuilder builder = new GUIBuilder(Config.prefix, InventoryType.HOPPER);
+		GUIBuilder builder = new GUIBuilder(Config.prefix, 3);
 
-		GUIElement gPane = new StaticGUIElement(Tools.createItem(Material.STAINED_GLASS_PANE, 1, 0, "§0"));
-		builder.addElement(1, gPane);
-		builder.addElement(2, gPane);
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		for(int i = 0; i < 27; i++) {
+			builder.addElement(i, gPane);
+		}
 		
-		builder.addElement(0, new StaticGUIElement(baseItem));
-		ItemStack confirmItem = ItemUtils.createItem(ItemUtils.createBanner(null, DyeColor.GREEN),
+		builder.addElement(10, new StaticGUIElement(baseItem));
+		ItemStack confirmItem = ItemUtils.createItem(ItemUtils.createBanner(null, VersionedDyeColor.GREEN),
 				Config.getMessage("minebay.gui.confirm.confirm.name"),
 				Config.getMessageList("minebay.gui.confirm.confirm.lore"));
-		builder.addElement(3, new StaticGUIElement(confirmItem).setAction(confirm));
-		ItemStack cancelItem = ItemUtils.createItem(ItemUtils.createBanner(null, DyeColor.RED),
+		builder.addElement(14, new StaticGUIElement(confirmItem).setAction(confirm));
+		ItemStack cancelItem = ItemUtils.createItem(ItemUtils.createBanner(null, VersionedDyeColor.RED),
 				Config.getMessage("minebay.gui.confirm.cancel.name"),
 				Config.getMessageList("minebay.gui.confirm.cancel.lore"));
-		builder.addElement(4, new StaticGUIElement(cancelItem).setAction(new GUIElementAction() {
+		builder.addElement(16, new StaticGUIElement(cancelItem).setAction(new GUIElementAction() {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
@@ -217,7 +220,7 @@ public class GUIs {
 	}
 	
 	public static GUI buySlotsGUI(AuctionRoom r, int amount) {
-		ItemStack baseItem = Tools.createItem(Material.NAME_TAG, 1, 0,
+		ItemStack baseItem = ItemUtils.createItem(Material.NAME_TAG, 1, 0,
 				Config.getMessage("minebay.gui.confirm.slots-buy.name"),
 				Config.getMessageList("minebay.gui.confirm.slots-buy.lore",
 						"price", ""+(amount*Config.config.getInt("minebay.user-rooms.slot-price")),
@@ -247,7 +250,7 @@ public class GUIs {
 	}
 	
 	public static GUI sellSlotsGUI(AuctionRoom r, int amount) {
-		ItemStack baseItem = Tools.createItem(Material.NAME_TAG, 1, 0,
+		ItemStack baseItem = ItemUtils.createItem(Material.NAME_TAG, 1, 0,
 				Config.getMessage("minebay.gui.confirm.slots-sell.name"),
 				Config.getMessageList("minebay.gui.confirm.slots-sell.lore",
 						"price", ""+(amount*Config.config.getInt("minebay.user-rooms.slot-sell-price")),
@@ -277,7 +280,7 @@ public class GUIs {
 		int sl = (r.getSlots() - Config.config.getInt("minebay.user-rooms.default-slot-number"))*Config.config.getInt("minebay.user-rooms.slot-sell-price");
 		int pr = Config.config.getInt("minebay.user-rooms.room-sell-price");
 		
-		ItemStack baseItem = Tools.createItem(Material.NAME_TAG, 1, 0,
+		ItemStack baseItem = ItemUtils.createItem(Material.NAME_TAG, 1, 0,
 				Config.getMessage("minebay.gui.confirm.room-sell.name"),
 				Config.getMessageList("minebay.gui.confirm.room-sell.lore",
 						"price", ""+(sl+pr),
@@ -297,7 +300,7 @@ public class GUIs {
 						if(gui2 == null) continue;
 						GUIHolder holder = (GUIHolder) oI.getHolder();
 						String t = (String) holder.getProperty("minebay_type");
-						if(t==null) continue;
+						if(t == null) continue;
 						if(t.equals("auction room")) {
 							if(((int) holder.getProperty("minebay_auctionroom_id")) == r.getRoomID()) {
 								pl.closeInventory();

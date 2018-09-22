@@ -47,8 +47,8 @@ public class MineBayFilter {
 						public BaseComponent[] getLayout(Player p) {
 							ItemStack item = it.getItem();
 							TextComponent it2 = new TextComponent(Config.getMessage("minebay.info.filter.line",
-									"type-or-name", item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : Config.getFriendlyTypeName(item.getData()),
-									"type", Config.getFriendlyTypeName(item.getData())));
+									"type-or-name", item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : Config.getFriendlyTypeName(item.getType()),
+									"type", Config.getFriendlyTypeName(item.getType())));
 							it2.setHoverEvent(new HoverEvent(Action.SHOW_ITEM, new ItemStackComponent(it.getItem()).toBase()));
 							return new BaseComponent[] {it2};
 						}

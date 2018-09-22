@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>MineBay</groupId>
   <artifactId>MineBay</artifactId>
-  <version>2.4</version>
+  <version>3.0b</version>
   
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -31,13 +31,30 @@
 	    <id>jitpack.io</id>
 	    <url>https://jitpack.io</url>
 	</repository>
+    <repository>
+        <id>reserve-repo</id>
+        <url>https://dl.bintray.com/theneweconomy/java/</url>
+    </repository>
   </repositories>
   
   <dependencies>
   	<dependency>
-  		<groupId>com.github.mrletsplay2003</groupId>
-  		<artifactId>MrCore</artifactId>
-  		<version>master-SNAPSHOT</version>
-  	</dependency>
+	    <groupId>com.github.MrLetsplay2003</groupId>
+	    <artifactId>MrCore</artifactId>
+	    <version>master-SNAPSHOT</version>
+	</dependency>
+    <!--Spigot API-->
+    <dependency>
+           <groupId>org.spigotmc</groupId>
+           <artifactId>spigot-api</artifactId>
+           <version>1.13-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
+    </dependency>
+    <dependency>
+          <groupId>net.tnemc</groupId>
+          <artifactId>Reserve</artifactId>
+          <version>0.1.0.10</version>
+          <scope>provided</scope>
+    </dependency>
  </dependencies>
 </project>
