@@ -21,7 +21,9 @@ public class ReserveEconomy implements MineBayEconomy {
 			return new ReserveEconomyResponse(false,
 					Config.getMessage("minebay.economy.reserve.insufficient-funds",
 							"needed-balance", ""+amount,
-							"current-balance", Reserve.instance().economy().getHoldings(player.getUniqueId()).toString()));
+							"current-balance", Reserve.instance().economy().getHoldings(player.getUniqueId()).toString(),
+							"currency-name-singular", Reserve.instance().economy().currencyDefaultSingular(),
+							"currency-name-plural", Reserve.instance().economy().currencyDefaultPlural()));
 		Reserve.instance().economy().removeHoldings(player.getUniqueId(), new BigDecimal(amount));
 		return new ReserveEconomyResponse(true, null);
 	}
