@@ -1,2 +1,2 @@
 # MineBay
-# Up to date! (v2.3)
+# Up to date! (v3.0b)
