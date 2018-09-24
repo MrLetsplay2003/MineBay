@@ -27,6 +27,7 @@ public class Config {
 	public static boolean use_uuids, allow_tax_change;
 	
 	public static String prefix, mbString, economy;
+	public static String openPermission, buyPermission, sellPermission, createPermission;
 	public static List<MineBayFilterItem> itemFilter;
 	
 	public static void saveConfig(){
@@ -99,6 +100,10 @@ public class Config {
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		economy = config.getString("minebay.general.economy", "Vault", true);
 		allow_tax_change = config.getBoolean("minebay.general.allow-tax-changing", true, true);
+		openPermission = config.getString("minebay.general.permission.open", "none", true);
+		buyPermission = config.getString("minebay.general.permission.buy", "none", true);
+		sellPermission = config.getString("minebay.general.permission.sell", "none", true);
+		createPermission = config.getString("minebay.general.permission.create", "none", true);
 		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant, Reserve");
 		saveConfig();
 		
@@ -160,6 +165,10 @@ public class Config {
 			cc.addDefault("minebay.info.filter.header", "%prefix% §7§lCurrent filter:");
 			cc.addDefault("minebay.info.filter.line", "§8- §7%type-or-name% §r(%type%)");
 			cc.addDefault("minebay.info.tax-changing-disabled", "§cTax changing is currently disabled");
+			cc.addDefault("minebay.info.permission-missing.open", "%prefix% §cYou're not allowed to open the MineBay GUI");
+			cc.addDefault("minebay.info.permission-missing.buy", "%prefix% §cYou're not allowed to buy items");
+			cc.addDefault("minebay.info.permission-missing.sell", "%prefix% §cYou're not allowed to sell items");
+			cc.addDefault("minebay.info.permission-missing.create", "%prefix% §cYou're not allowed to create/edit a room");
 			
 			cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
 			cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");

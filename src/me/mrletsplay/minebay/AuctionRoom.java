@@ -134,6 +134,11 @@ public class AuctionRoom {
 									p.closeInventory();
 									p.openInventory(GUIs.purchaseItemGUI(item).getForPlayer(p));
 								}else{
+									if(!Config.sellPermission.equalsIgnoreCase("none") && !e.getPlayer().hasPermission(Config.sellPermission)) {
+										e.getPlayer().sendMessage(Config.getMessage("minebay.info.permission-missing.sell"));
+										e.setCancelled(true);
+										return;
+									}
 									HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item.getItem());
 									for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
 										p.getWorld().dropItem(p.getLocation(), me.getValue());
@@ -156,6 +161,11 @@ public class AuctionRoom {
 			
 			@Override
 			public void onDragDrop(GUIDragDropEvent e) {
+				if(!Config.sellPermission.equalsIgnoreCase("none") && !e.getPlayer().hasPermission(Config.sellPermission)) {
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.permission-missing.sell"));
+					e.setCancelled(true);
+					return;
+				}
 				e.setCancelled(!Config.config.getBoolean("minebay.general.allow-drag-and-drop"));
 			}
 		});

@@ -43,6 +43,11 @@ public class GUIs {
 					
 					@Override
 					public void onAction(GUIElementActionEvent e) {
+						if(!Config.createPermission.equalsIgnoreCase("none") && !e.getPlayer().hasPermission(Config.createPermission)) {
+							e.getPlayer().sendMessage(Config.getMessage("minebay.info.permission-missing.create"));
+							e.setCancelled(true);
+							return;
+						}
 						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || e.getPlayer().hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(e.getPlayer())){
 								Inventory inv = buyRoomGUI().getForPlayer(e.getPlayer());
@@ -92,6 +97,11 @@ public class GUIs {
 								if(e.getButton().equals(ClickAction.LEFT_CLICK) || e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
 									p.openInventory(room.getMineBayInv(0, p));
 								}else if((e.getButton().equals(ClickAction.RIGHT_CLICK) || e.getButton().equals(ClickAction.SHIFT_RIGHT_CLICK))&& room.canEdit(p)){
+									if(!Config.createPermission.equalsIgnoreCase("none") && !p.hasPermission(Config.createPermission)) {
+										p.sendMessage(Config.getMessage("minebay.info.permission-missing.create"));
+										e.setCancelled(true);
+										return;
+									}
 									p.openInventory(room.getSettingsGUI().getForPlayer(p));
 								}
 								e.setCancelled(true);

@@ -107,6 +107,10 @@ public class Main extends JavaPlugin{
 				if(args.length>=1){
 					if(args[0].equalsIgnoreCase("open")){
 						if(args.length == 1){
+							if(!Config.openPermission.equalsIgnoreCase("none") && !p.hasPermission(Config.openPermission)) {
+								p.sendMessage(Config.getMessage("minebay.info.permission-missing.open"));
+								return true;
+							}
 							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 								p.openInventory(GUIs.getAuctionRoomsGUI(null).getForPlayer(p));
 								CancelTask.cancelForPlayer(p);
@@ -133,6 +137,10 @@ public class Main extends JavaPlugin{
 						return true;
 					}else if(args[0].equalsIgnoreCase("sell")){
 						if(args.length==2){
+							if(!Config.sellPermission.equalsIgnoreCase("none") && !p.hasPermission(Config.sellPermission)) {
+								p.sendMessage(Config.getMessage("minebay.info.permission-missing.sell"));
+								return true;
+							}
 							try{
 								BigDecimal price = new BigDecimal(args[1]);
 								if(price.compareTo(new BigDecimal("0")) == 1){ // > 0
@@ -165,6 +173,10 @@ public class Main extends JavaPlugin{
 							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("create")){
+						if(!Config.createPermission.equalsIgnoreCase("none") && !p.hasPermission(Config.createPermission)) {
+							p.sendMessage(Config.getMessage("minebay.info.permission-missing.create"));
+							return true;
+						}
 						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(p)){
 								p.openInventory(GUIs.buyRoomGUI().getForPlayer(p));
