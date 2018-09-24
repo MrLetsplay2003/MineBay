@@ -1,6 +1,6 @@
 main: me.mrletsplay.minebay.Main
 name: MineBay
-version: 3.0b
+version: 3.0b2
 author: MrLetsplay2003
 softdepend: [MrCore_BukkitImpl, Vault, TokenEnchant, Reserve]
 
