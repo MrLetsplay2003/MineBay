@@ -87,7 +87,7 @@ public class GUIs {
 		builder.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(GUIBuildPageItemEvent event, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildPageItemEvent<AuctionRoom> event, AuctionRoom room) {
 				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {
@@ -133,7 +133,7 @@ public class GUIs {
 		builderBase.setSupplier(new ItemSupplier<AuctionRoom>() {
 			
 			@Override
-			public GUIElement toGUIElement(GUIBuildPageItemEvent event, AuctionRoom room) {
+			public GUIElement toGUIElement(GUIBuildPageItemEvent<AuctionRoom> event, AuctionRoom room) {
 				Player p = event.getPlayer();
 				return new StaticGUIElement(room.getSelectItemStack(p))
 						.setAction(new GUIElementAction() {

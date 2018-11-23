@@ -17,6 +17,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Testserver/Testserver Spigot 1.8 - Kopie/TokenEnchantAPI.jar"/>
-	<classpathentry kind="lib" path="D:/Testserver/Testserver Spigot 1.13.1 - Kopie/plugins/Vault.jar"/>
+	<classpathentry kind="lib" path="D:/Testserver/Testserver Spigot 1.8 - Kopie/plugins/Vault.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MrCore"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

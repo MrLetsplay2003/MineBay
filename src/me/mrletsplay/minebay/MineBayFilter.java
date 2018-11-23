@@ -1,10 +1,6 @@
 package me.mrletsplay.minebay;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,10 +12,6 @@ import me.mrletsplay.mrcore.bukkitimpl.ChatUI.UIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ChatUI.UILayoutMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.ChatUI.UIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.ExtraChatComponents.ItemStackComponent;
-import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
-import me.mrletsplay.mrcore.bukkitimpl.ItemUtils.ComparisonParameter;
-import me.mrletsplay.mrcore.bukkitimpl.ItemUtils.ComparisonResult;
-import me.mrletsplay.mrcore.config.ConfigExpansions.ExpandableCustomConfig.ObjectMapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
@@ -37,7 +29,7 @@ public class MineBayFilter {
 					.addText(" ")
 					.addElement("next_page")
 					.addPageElements(10, true))
-			.setSupplier(new ItemSupplier<MineBayFilter.MineBayFilterItem>() {
+			.setSupplier(new ItemSupplier<MineBayFilterItem>() {
 				
 				@Override
 				public UIElement toUIElement(Player p, MineBayFilterItem it) {
@@ -66,58 +58,29 @@ public class MineBayFilter {
 		return Config.itemFilter.stream().anyMatch(i -> i.matches(item));
 	}
 	
-	public static class MineBayFilterObjectMapper extends ObjectMapper<MineBayFilterItem>{
-
-		public MineBayFilterObjectMapper() {
-			super(MineBayFilterItem.class);
-		}
-
-		@Override
-		public Map<String, Object> mapObject(MineBayFilterItem object) {
-			Map<String, Object> map = new HashMap<>();
-			map.put("item", object.item);
-			map.put("ignored-parameters", object.ignoredParameters.stream().map(p -> p.name()).collect(Collectors.toList()));
-			return map;
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public MineBayFilterItem constructObject(Map<String, Object> map) {
-			if(!requireKeys(map, "item", "ignored-parameters")) return null;
-			ItemStack it = castGeneric(map.get("item"), ItemStack.class);
-			List<ComparisonParameter> params = ((List<String>) map.get("ignored-parameters")).stream().map(s -> ComparisonParameter.valueOf(s.toUpperCase())).collect(Collectors.toList());
-			return new MineBayFilterItem(it, params);
-		}
-		
-	}
+//	public static class MineBayFilterObjectMapper extends ObjectMapper<MineBayFilterItem>{
+//
+//		public MineBayFilterObjectMapper() {
+//			super(MineBayFilterItem.class);
+//		}
+//
+//		@Override
+//		public Map<String, Object> mapObject(MineBayFilterItem object) {
+//			Map<String, Object> map = new HashMap<>();
+//			map.put("item", object.item);
+//			map.put("ignored-parameters", object.ignoredParameters.stream().map(p -> p.name()).collect(Collectors.toList()));
+//			return map;
+//		}
+//
+//		@SuppressWarnings("unchecked")
+//		@Override
+//		public MineBayFilterItem constructObject(Map<String, Object> map) {
+//			if(!requireKeys(map, "item", "ignored-parameters")) return null;
+//			ItemStack it = castGeneric(map.get("item"), ItemStack.class);
+//			List<ComparisonParameter> params = ((List<String>) map.get("ignored-parameters")).stream().map(s -> ComparisonParameter.valueOf(s.toUpperCase())).collect(Collectors.toList());
+//			return new MineBayFilterItem(it, params);
+//		}
+//		
+//	}
 	
-	public static class MineBayFilterItem {
-		
-		private ItemStack item;
-		private List<ComparisonParameter> ignoredParameters;
-		
-		public MineBayFilterItem(ItemStack item, List<ComparisonParameter> ignoredParams) {
-			this.item = item;
-			this.ignoredParameters = ignoredParams;
-		}
-		
-		public ItemStack getItem() {
-			return item;
-		}
-		
-		public List<ComparisonParameter> getIgnoredParameters() {
-			return ignoredParameters;
-		}
-		
-		public boolean matches(ItemStack item) {
-			ComparisonResult res = ItemUtils.compareItems(item, this.item);
-			return res.matches(Arrays.stream(ComparisonParameter.values()).filter(c -> {
-				return !c.isParameterCollection &&
-						!c.equals(ComparisonParameter.AMOUNT) &&
-						!ignoredParameters.contains(c);
-			}).toArray(ComparisonParameter[]::new));
-		}
-		
-	}
-
 }

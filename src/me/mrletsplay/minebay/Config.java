@@ -1,7 +1,6 @@
 package me.mrletsplay.minebay;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,18 +9,18 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
-import me.mrletsplay.minebay.MineBayFilter.MineBayFilterItem;
-import me.mrletsplay.minebay.MineBayFilter.MineBayFilterObjectMapper;
-import me.mrletsplay.mrcore.bukkitimpl.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
-import me.mrletsplay.mrcore.config.CustomConfig.ConfigSaveProperty;
-import me.mrletsplay.mrcore.config.CustomConfig.InvalidConfigException;
+import me.mrletsplay.mrcore.config.ConfigLoader;
+import me.mrletsplay.mrcore.misc.Complex;
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static BukkitCustomConfig config = (BukkitCustomConfig) new BukkitCustomConfig(new File(Main.pl.getDataFolder(), "config.yml"), ConfigSaveProperty.SORT_ALPHABETICALLY).loadConfigSafely(),
+	public static File configFile = new File(Main.pl.getDataFolder(), "config.yml");
+	
+	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true),
 							   messages;
 	
 	public static boolean use_uuids, allow_tax_change;
@@ -32,7 +31,7 @@ public class Config {
 	
 	public static void saveConfig(){
 		try{
-			config.saveConfig();
+			config.saveToFile();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -40,15 +39,13 @@ public class Config {
 	
 	public static void saveMessages(){
 		try{
-			messages.saveConfig();
+			messages.saveToFile();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
 	public static void init(){
-		config.registerMapper(new MineBayFilterObjectMapper());
-		
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
 		config.addDefault("minebay.general.max-type-time-seconds", -1);
@@ -89,11 +86,7 @@ public class Config {
 		config.addDefault("room-perm.user.donator.allow-colored-names", true);
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
 		
-		config.applyDefaults(true);
-		
-		itemFilter = config.getMappableList("minebay.general.item-filter", MineBayFilterItem.class, Arrays.asList(
-					new MineBayFilterItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
-				), true);
+		config.applyDefaults();
 		
 		use_uuids = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
 		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
@@ -109,205 +102,201 @@ public class Config {
 		
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));
 		saveMessages();
+		
+		config.registerMapper(MineBayFilterItem.MAPPER);
+		itemFilter = config.getComplex("minebay.general.item-filter", Complex.list(MineBayFilterItem.class), Arrays.asList(
+					new MineBayFilterItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
+				), true);
 	}
 	
 	private static BukkitCustomConfig loadMessageConfig(File f) {
-		BukkitCustomConfig cc;
-		try {
-			cc = (BukkitCustomConfig) new BukkitCustomConfig(f).loadConfig();
-			cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount%x %type% §afrom §6%seller% §afor §6%price% %currency%");
-			cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
-			cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
-			cc.addDefault("minebay.info.purchase.room-owner.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §ain your room on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
-			cc.addDefault("minebay.info.sell.success", "%prefix% §aSuccessfully put §6%amount%x %type% §afor §6%price% %currency% §afor sale on %mbstring%");
-			cc.addDefault("minebay.info.sell.type-in-price", "%prefix% §aType in the price for the item");
-			cc.addDefault("minebay.info.sell.action-cancelled", "%prefix% §cOld sell action cancelled!");
-			cc.addDefault("minebay.info.sell.error.invalid-price", "%prefix% §aType in another price");
-			cc.addDefault("minebay.info.sell.error.noitem", "%prefix% §cYou need to hold an item in your hand");
-			cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
-			cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
-			cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
-			cc.addDefault("minebay.info.newname", "%prefix% §aType in a new name (Max. %maxchars% Characters)");
-			cc.addDefault("minebay.info.newname-cancelled", "%prefix% §cOld rename action cancelled!");
-			cc.addDefault("minebay.info.newname-applied", "%prefix% §aName changed to: %newname%");
-			cc.addDefault("minebay.info.newdescription", "%prefix% §aType in a new description");
-			cc.addDefault("minebay.info.newdescription-cancelled", "%prefix% §c Old description change action cancelled!");
-			cc.addDefault("minebay.info.newdescription-applied", "%prefix% §aDescription changed to: %newdescription%");
-			cc.addDefault("minebay.info.error.name-too-long", "%prefix% §cMaximum name length: %maxchars%");
-			cc.addDefault("minebay.info.newicon-applied", "%prefix% §aRoom icon changed to: %type%");
-			cc.addDefault("minebay.info.buy-icon.success", "%prefix% §aBought icon for %price% %currency%, room icon changed to: %type%");
-			cc.addDefault("minebay.info.buy-icon.error", "%prefix% §cError: %error%");
-			cc.addDefault("minebay.info.room-created", "%prefix% §aRoom §6\"%name%\" §acreated! §7(Properties: Tax: %taxshare%%, Slots: %slots%, Icon Material: %iconmaterial%, ID: %roomid%)");
-			cc.addDefault("minebay.info.room-create.error.too-many-rooms", "%prefix% §cYou have already reached the room limit!");
-			cc.addDefault("minebay.info.room-create.error.general", "%prefix% §cError: %error%");
-			cc.addDefault("minebay.info.slot-buy.success", "%prefix% §aBought %slotamount% slot/s for %price% %currency%");
-			cc.addDefault("minebay.info.slot-buy.error", "%prefix% §cError: %error%");
-			cc.addDefault("minebay.info.slot-buy.toomanyslots", "%prefix% §cYou already have reached the maximum amount of slots");
-			cc.addDefault("minebay.info.slot-buy.is-default", "%prefix% §cYou can't buy slots for auction room as it is a default auction room");
-			cc.addDefault("minebay.info.slot-sell.success", "%prefix% §aSold %slotamount% slot/s for %price% %currency%");
-			cc.addDefault("minebay.info.slot-sell.not-allowed", "%prefix% §cSlot selling is not allowed");
-			cc.addDefault("minebay.info.slot-sell.all-slots-occupied", "%prefix% §cAll slots are currently occupied");
-			cc.addDefault("minebay.info.slot-sell.error", "%prefix% §cError: %error%");
-			cc.addDefault("minebay.info.slot-sell.notenoughslots", "%prefix% §cYou already have reached the minimum amount of slots");
-			cc.addDefault("minebay.info.slot-sell.is-default", "%prefix% §cYou can't sell slots of auction room as it is a default auction room");
-			cc.addDefault("minebay.info.tax.success", "%prefix% §aChanged the tax to %newtax%%");
-			cc.addDefault("minebay.info.tax.toohigh", "%prefix% §cYou already have reached the maximum tax");
-			cc.addDefault("minebay.info.tax.toolow", "%prefix% §cYou can't set the tax below 0%");
-			cc.addDefault("minebay.info.sell-room.success", "%prefix% §aSuccessfully sold your room for %price% %currency%");
-			cc.addDefault("minebay.info.sell-room.not-allowed", "%prefix% §cRoom selling is not allowed");
-			cc.addDefault("minebay.info.sell-room.not-empty", "%prefix% §cThere are still offers in your room");
-			cc.addDefault("minebay.info.sell-room.is-default", "%prefix% §cYou can't sell this auction room as it is the default auction room");
-			cc.addDefault("minebay.info.sell-room.error", "%prefix% §cError: %error%");
-			cc.addDefault("minebay.info.retract-sale.success", "%prefix% §aSuccessfully retracted your sale");
-			cc.addDefault("minebay.info.user-rooms-disabled", "%prefix% §cUser rooms are disabled!");
-			cc.addDefault("minebay.info.reload-complete", "%prefix% §aReload complete");
-			cc.addDefault("minebay.info.reload-no-permission", "%prefix% §cNo permission");
-			cc.addDefault("minebay.info.filter.header", "%prefix% §7§lCurrent filter:");
-			cc.addDefault("minebay.info.filter.line", "§8- §7%type-or-name% §r(%type%)");
-			cc.addDefault("minebay.info.tax-changing-disabled", "§cTax changing is currently disabled");
-			cc.addDefault("minebay.info.permission-missing.open", "%prefix% §cYou're not allowed to open the MineBay GUI");
-			cc.addDefault("minebay.info.permission-missing.buy", "%prefix% §cYou're not allowed to buy items");
-			cc.addDefault("minebay.info.permission-missing.sell", "%prefix% §cYou're not allowed to sell items");
-			cc.addDefault("minebay.info.permission-missing.create", "%prefix% §cYou're not allowed to create/edit a room");
-			
-			cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
-			cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");
-			cc.addDefault("minebay.gui.item-confirm.cancel", "§cCancel");
-			
-			cc.addDefault("minebay.gui.rooms.create-room", "§aCreate new room");
-			cc.addDefault("minebay.gui.rooms.list-all", "§7All rooms");
-			cc.addDefault("minebay.gui.rooms.list-self", "§7Your rooms");
-			
-			cc.addDefault("minebay.gui.room.sold-item.lore", Arrays.asList(
-																		"§8Price: §7%price%",
-																		"§8Seller: §7%seller-name%",
-																		"§8Product ID: §7%item-id%",
-																		"%retract-sale%"
+		BukkitCustomConfig cc = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(f), f, true);
+		cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount%x %type% §afrom §6%seller% §afor §6%price% %currency%");
+		cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
+		cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
+		cc.addDefault("minebay.info.purchase.room-owner.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §ain your room on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
+		cc.addDefault("minebay.info.sell.success", "%prefix% §aSuccessfully put §6%amount%x %type% §afor §6%price% %currency% §afor sale on %mbstring%");
+		cc.addDefault("minebay.info.sell.type-in-price", "%prefix% §aType in the price for the item");
+		cc.addDefault("minebay.info.sell.action-cancelled", "%prefix% §cOld sell action cancelled!");
+		cc.addDefault("minebay.info.sell.error.invalid-price", "%prefix% §aType in another price");
+		cc.addDefault("minebay.info.sell.error.noitem", "%prefix% §cYou need to hold an item in your hand");
+		cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
+		cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
+		cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
+		cc.addDefault("minebay.info.newname", "%prefix% §aType in a new name (Max. %maxchars% Characters)");
+		cc.addDefault("minebay.info.newname-cancelled", "%prefix% §cOld rename action cancelled!");
+		cc.addDefault("minebay.info.newname-applied", "%prefix% §aName changed to: %newname%");
+		cc.addDefault("minebay.info.newdescription", "%prefix% §aType in a new description");
+		cc.addDefault("minebay.info.newdescription-cancelled", "%prefix% §c Old description change action cancelled!");
+		cc.addDefault("minebay.info.newdescription-applied", "%prefix% §aDescription changed to: %newdescription%");
+		cc.addDefault("minebay.info.error.name-too-long", "%prefix% §cMaximum name length: %maxchars%");
+		cc.addDefault("minebay.info.newicon-applied", "%prefix% §aRoom icon changed to: %type%");
+		cc.addDefault("minebay.info.buy-icon.success", "%prefix% §aBought icon for %price% %currency%, room icon changed to: %type%");
+		cc.addDefault("minebay.info.buy-icon.error", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.room-created", "%prefix% §aRoom §6\"%name%\" §acreated! §7(Properties: Tax: %taxshare%%, Slots: %slots%, Icon Material: %iconmaterial%, ID: %roomid%)");
+		cc.addDefault("minebay.info.room-create.error.too-many-rooms", "%prefix% §cYou have already reached the room limit!");
+		cc.addDefault("minebay.info.room-create.error.general", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.slot-buy.success", "%prefix% §aBought %slotamount% slot/s for %price% %currency%");
+		cc.addDefault("minebay.info.slot-buy.error", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.slot-buy.toomanyslots", "%prefix% §cYou already have reached the maximum amount of slots");
+		cc.addDefault("minebay.info.slot-buy.is-default", "%prefix% §cYou can't buy slots for auction room as it is a default auction room");
+		cc.addDefault("minebay.info.slot-sell.success", "%prefix% §aSold %slotamount% slot/s for %price% %currency%");
+		cc.addDefault("minebay.info.slot-sell.not-allowed", "%prefix% §cSlot selling is not allowed");
+		cc.addDefault("minebay.info.slot-sell.all-slots-occupied", "%prefix% §cAll slots are currently occupied");
+		cc.addDefault("minebay.info.slot-sell.error", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.slot-sell.notenoughslots", "%prefix% §cYou already have reached the minimum amount of slots");
+		cc.addDefault("minebay.info.slot-sell.is-default", "%prefix% §cYou can't sell slots of auction room as it is a default auction room");
+		cc.addDefault("minebay.info.tax.success", "%prefix% §aChanged the tax to %newtax%%");
+		cc.addDefault("minebay.info.tax.toohigh", "%prefix% §cYou already have reached the maximum tax");
+		cc.addDefault("minebay.info.tax.toolow", "%prefix% §cYou can't set the tax below 0%");
+		cc.addDefault("minebay.info.sell-room.success", "%prefix% §aSuccessfully sold your room for %price% %currency%");
+		cc.addDefault("minebay.info.sell-room.not-allowed", "%prefix% §cRoom selling is not allowed");
+		cc.addDefault("minebay.info.sell-room.not-empty", "%prefix% §cThere are still offers in your room");
+		cc.addDefault("minebay.info.sell-room.is-default", "%prefix% §cYou can't sell this auction room as it is the default auction room");
+		cc.addDefault("minebay.info.sell-room.error", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.retract-sale.success", "%prefix% §aSuccessfully retracted your sale");
+		cc.addDefault("minebay.info.user-rooms-disabled", "%prefix% §cUser rooms are disabled!");
+		cc.addDefault("minebay.info.reload-complete", "%prefix% §aReload complete");
+		cc.addDefault("minebay.info.reload-no-permission", "%prefix% §cNo permission");
+		cc.addDefault("minebay.info.filter.header", "%prefix% §7§lCurrent filter:");
+		cc.addDefault("minebay.info.filter.line", "§8- §7%type-or-name% §r(%type%)");
+		cc.addDefault("minebay.info.tax-changing-disabled", "§cTax changing is currently disabled");
+		cc.addDefault("minebay.info.permission-missing.open", "%prefix% §cYou're not allowed to open the MineBay GUI");
+		cc.addDefault("minebay.info.permission-missing.buy", "%prefix% §cYou're not allowed to buy items");
+		cc.addDefault("minebay.info.permission-missing.sell", "%prefix% §cYou're not allowed to sell items");
+		cc.addDefault("minebay.info.permission-missing.create", "%prefix% §cYou're not allowed to create/edit a room");
+		
+		cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
+		cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");
+		cc.addDefault("minebay.gui.item-confirm.cancel", "§cCancel");
+		
+		cc.addDefault("minebay.gui.rooms.create-room", "§aCreate new room");
+		cc.addDefault("minebay.gui.rooms.list-all", "§7All rooms");
+		cc.addDefault("minebay.gui.rooms.list-self", "§7Your rooms");
+		
+		cc.addDefault("minebay.gui.room.sold-item.lore", Arrays.asList(
+																	"§8Price: §7%price%",
+																	"§8Seller: §7%seller-name%",
+																	"§8Product ID: §7%item-id%",
+																	"%retract-sale%"
+																));
+		cc.addDefault("minebay.gui.room.sold-item.retract-sale", "§7Click to retract sale");
+		cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
+		cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
+		cc.addDefault("minebay.gui.misc.back", "§cBack");
+		cc.addDefault("minebay.gui.misc.none", "None");
+		cc.addDefault("minebay.gui.room-settings.delete", "§cDelete Room");
+		cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
+		cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
+																			  "§8Currently: §7%name%",
+																			  "",
+																			  "§7Description",
+																			  "§8Currently: §7%description%"));
+		cc.addDefault("minebay.gui.room-settings.name-desc.name-lore-linebreak-color", "§7");
+		cc.addDefault("minebay.gui.room-settings.name-desc.change-name", "§7Change Name");
+		cc.addDefault("minebay.gui.room-settings.name-desc.change-description", "§7Change Description");
+		cc.addDefault("minebay.gui.room-settings.block.name", "§7Block");
+		cc.addDefault("minebay.gui.room-settings.block.lore", Arrays.asList("§8Currently: §7%type%"));
+		cc.addDefault("minebay.gui.room-settings.block-change.name", "§7Change Block");
+		cc.addDefault("minebay.gui.room-settings.slots.name", "§7Slots");
+		cc.addDefault("minebay.gui.room-settings.slots.lore", Arrays.asList("§8Currently: §7%slots%"));
+		cc.addDefault("minebay.gui.room-settings.slots-buy.name", "§7Buy Slot/s");
+		cc.addDefault("minebay.gui.room-settings.slots-buy.lore", Arrays.asList(
+																		"§8Left click to buy 1 slot",
+																		"§8Shift-left click to buy 5 slots"));
+		cc.addDefault("minebay.gui.room-settings.slots-sell.name", "§7Sell slot/s");
+		cc.addDefault("minebay.gui.room-settings.slots-sell.lore", Arrays.asList(
+																		"§8Left click to sell 1 slot",
+																		"§8Shift-left click to sell 5 slots"));
+		cc.addDefault("minebay.gui.room-settings.tax.name", "§7Tax");
+		cc.addDefault("minebay.gui.room-settings.tax.lore", Arrays.asList("§8Currently: §7%tax%"));
+		cc.addDefault("minebay.gui.room-settings.tax-increase.disabled", "§cChanging your tax is currently not allowed");
+		cc.addDefault("minebay.gui.room-settings.tax-increase.name", "§7Increase Tax");
+		cc.addDefault("minebay.gui.room-settings.tax-increase.lore", Arrays.asList(
+																		"§8Left click to increase tax by 1%",
+																		"§8Shift-left click to increase tax by 10%",
+																		"%tax-changing-disabled%"));
+		cc.addDefault("minebay.gui.room-settings.tax-decrease.disabled", "§cChanging your tax is currently not allowed");
+		cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§7Decrease Tax");
+		cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
+																		"§8Left click to decrease tax by 1%",
+																		"§8Shift-left click to decrease tax by 10%",
+																		"%tax-changing-disabled%"));
+		cc.addDefault("minebay.gui.room-settings.room-delete.name", "§cDelete Room");
+		cc.addDefault("minebay.gui.room-settings.room-delete.lore", Arrays.asList(
+																		"§8Worth: §7%worth%",
+																		"§8Room ID: §7%room-id%"));
+		cc.addDefault("minebay.gui.room-settings.custom-icon.name", "§6Custom block/item");
+		cc.addDefault("minebay.gui.room-settings.custom-icon.lore", Arrays.asList(
+																		"§8Price: %price%"));
+		
+		cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.name", "§7Drop item here");
+		cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.lore", Arrays.asList(
+																		"§7Drop your item here"));
+		
+		cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
+		cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
+		cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
+		cc.addDefault("minebay.gui.rooms.room-item.can-edit", "§7Right-click for settings");
+		cc.addDefault("minebay.gui.rooms.room-item.lore", Arrays.asList(
+																		"§8Owner: §7%owner%",
+																		"§8Slots: §7%slots-occupied%/%slots-limit%",
+																		"§8Tax: §7%tax%%",
+																		"§8ID: §7%room-id%",
+																		"§8Description: §7%description%",
+																		"%can-edit%"
 																	));
-			cc.addDefault("minebay.gui.room.sold-item.retract-sale", "§7Click to retract sale");
-			cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
-			cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
-			cc.addDefault("minebay.gui.misc.back", "§cBack");
-			cc.addDefault("minebay.gui.misc.none", "None");
-			cc.addDefault("minebay.gui.room-settings.delete", "§cDelete Room");
-			cc.addDefault("minebay.gui.room-settings.name-desc.name", "§7Name");
-			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore", Arrays.asList(
-																				  "§8Currently: §7%name%",
-																				  "",
-																				  "§7Description",
-																				  "§8Currently: §7%description%"));
-			cc.addDefault("minebay.gui.room-settings.name-desc.name-lore-linebreak-color", "§7");
-			cc.addDefault("minebay.gui.room-settings.name-desc.change-name", "§7Change Name");
-			cc.addDefault("minebay.gui.room-settings.name-desc.change-description", "§7Change Description");
-			cc.addDefault("minebay.gui.room-settings.block.name", "§7Block");
-			cc.addDefault("minebay.gui.room-settings.block.lore", Arrays.asList("§8Currently: §7%type%"));
-			cc.addDefault("minebay.gui.room-settings.block-change.name", "§7Change Block");
-			cc.addDefault("minebay.gui.room-settings.slots.name", "§7Slots");
-			cc.addDefault("minebay.gui.room-settings.slots.lore", Arrays.asList("§8Currently: §7%slots%"));
-			cc.addDefault("minebay.gui.room-settings.slots-buy.name", "§7Buy Slot/s");
-			cc.addDefault("minebay.gui.room-settings.slots-buy.lore", Arrays.asList(
-																			"§8Left click to buy 1 slot",
-																			"§8Shift-left click to buy 5 slots"));
-			cc.addDefault("minebay.gui.room-settings.slots-sell.name", "§7Sell slot/s");
-			cc.addDefault("minebay.gui.room-settings.slots-sell.lore", Arrays.asList(
-																			"§8Left click to sell 1 slot",
-																			"§8Shift-left click to sell 5 slots"));
-			cc.addDefault("minebay.gui.room-settings.tax.name", "§7Tax");
-			cc.addDefault("minebay.gui.room-settings.tax.lore", Arrays.asList("§8Currently: §7%tax%"));
-			cc.addDefault("minebay.gui.room-settings.tax-increase.disabled", "§cChanging your tax is currently not allowed");
-			cc.addDefault("minebay.gui.room-settings.tax-increase.name", "§7Increase Tax");
-			cc.addDefault("minebay.gui.room-settings.tax-increase.lore", Arrays.asList(
-																			"§8Left click to increase tax by 1%",
-																			"§8Shift-left click to increase tax by 10%",
-																			"%tax-changing-disabled%"));
-			cc.addDefault("minebay.gui.room-settings.tax-decrease.disabled", "§cChanging your tax is currently not allowed");
-			cc.addDefault("minebay.gui.room-settings.tax-decrease.name", "§7Decrease Tax");
-			cc.addDefault("minebay.gui.room-settings.tax-decrease.lore", Arrays.asList(
-																			"§8Left click to decrease tax by 1%",
-																			"§8Shift-left click to decrease tax by 10%",
-																			"%tax-changing-disabled%"));
-			cc.addDefault("minebay.gui.room-settings.room-delete.name", "§cDelete Room");
-			cc.addDefault("minebay.gui.room-settings.room-delete.lore", Arrays.asList(
-																			"§8Worth: §7%worth%",
-																			"§8Room ID: §7%room-id%"));
-			cc.addDefault("minebay.gui.room-settings.custom-icon.name", "§6Custom block/item");
-			cc.addDefault("minebay.gui.room-settings.custom-icon.lore", Arrays.asList(
-																			"§8Price: %price%"));
-			
-			cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.name", "§7Drop item here");
-			cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.lore", Arrays.asList(
-																			"§7Drop your item here"));
-			
-			cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
-			cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
-			cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
-			cc.addDefault("minebay.gui.rooms.room-item.can-edit", "§7Right-click for settings");
-			cc.addDefault("minebay.gui.rooms.room-item.lore", Arrays.asList(
-																			"§8Owner: §7%owner%",
-																			"§8Slots: §7%slots-occupied%/%slots-limit%",
-																			"§8Tax: §7%tax%%",
-																			"§8ID: §7%room-id%",
-																			"§8Description: §7%description%",
-																			"%can-edit%"
-																		));
-			
-			
-			
-			cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
-			cc.addDefault("minebay.gui.confirm.room-create.lore", Arrays.asList(
-																			"§8Price: §7%price%"));
-			
-			
-			cc.addDefault("minebay.gui.confirm.slots-buy.name", "§8Buy Slot(s)");
-			cc.addDefault("minebay.gui.confirm.slots-buy.lore", Arrays.asList(
-																			"§8Price: §7%price%",
-																			"§8Room ID: §7%room-id%",
-																			"§8Amount: §7%amount%"));
+		
+		
+		
+		cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
+		cc.addDefault("minebay.gui.confirm.room-create.lore", Arrays.asList(
+																		"§8Price: §7%price%"));
+		
+		
+		cc.addDefault("minebay.gui.confirm.slots-buy.name", "§8Buy Slot(s)");
+		cc.addDefault("minebay.gui.confirm.slots-buy.lore", Arrays.asList(
+																		"§8Price: §7%price%",
+																		"§8Room ID: §7%room-id%",
+																		"§8Amount: §7%amount%"));
 
-			cc.addDefault("minebay.gui.confirm.slots-sell.name", "§8Sell Slot(s)");
-			cc.addDefault("minebay.gui.confirm.slots-sell.lore", Arrays.asList(
-																			"§8Worth: §7%price%",
-																			"§8Room ID: §7%room-id%",
-																			"§8Amount: §7%amount%"));
-			
-			cc.addDefault("minebay.gui.confirm.room-sell.name", "§8Sell Room");
-			cc.addDefault("minebay.gui.confirm.room-sell.lore", Arrays.asList(
-																			"§8Worth: §7%price%",
-																			"§8Room ID: §7%room-id%"));
-			
-			cc.addDefault("minebay.gui.confirm.confirm.name", "§aConfirm");
-			cc.addDefault("minebay.gui.confirm.confirm.lore", Arrays.asList(
-																			"§7This will confirm the current action"));
-			
-			cc.addDefault("minebay.gui.confirm.cancel.name", "§cCancel");
-			cc.addDefault("minebay.gui.confirm.cancel.lore", Arrays.asList(
-																			"§7This will cancel the current action"));
-			
-			cc.addDefault("minebay.gui.confirm.buy-item.info.name", "§eInfo");
-			cc.addDefault("minebay.gui.confirm.buy-item.info.lore", Arrays.asList(
-																			"§8Price: §7%price%",
-																			"§8Seller: §7%seller%",
-																			"§8Product ID: §7%item-id%",
-																			"§8Auction Room: §7%room-id%"));
-			
-			cc.addDefault("minebay.economy.tokenenchant.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% token(s), needed: %needed-balance% token(s))");
-			cc.addDefault("minebay.economy.tokenenchant.currency-name.singular", "token");
-			cc.addDefault("minebay.economy.tokenenchant.currency-name.plural", "tokens");
-			
-			cc.addDefault("minebay.economy.reserve.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% %currency-name-plural%, needed: %needed-balance% %currency-name-plural%)");
-			
-			cc.applyDefaults(true, true);
-			
-			return cc;
-		} catch (InvalidConfigException | IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		cc.addDefault("minebay.gui.confirm.slots-sell.name", "§8Sell Slot(s)");
+		cc.addDefault("minebay.gui.confirm.slots-sell.lore", Arrays.asList(
+																		"§8Worth: §7%price%",
+																		"§8Room ID: §7%room-id%",
+																		"§8Amount: §7%amount%"));
+		
+		cc.addDefault("minebay.gui.confirm.room-sell.name", "§8Sell Room");
+		cc.addDefault("minebay.gui.confirm.room-sell.lore", Arrays.asList(
+																		"§8Worth: §7%price%",
+																		"§8Room ID: §7%room-id%"));
+		
+		cc.addDefault("minebay.gui.confirm.confirm.name", "§aConfirm");
+		cc.addDefault("minebay.gui.confirm.confirm.lore", Arrays.asList(
+																		"§7This will confirm the current action"));
+		
+		cc.addDefault("minebay.gui.confirm.cancel.name", "§cCancel");
+		cc.addDefault("minebay.gui.confirm.cancel.lore", Arrays.asList(
+																		"§7This will cancel the current action"));
+		
+		cc.addDefault("minebay.gui.confirm.buy-item.info.name", "§eInfo");
+		cc.addDefault("minebay.gui.confirm.buy-item.info.lore", Arrays.asList(
+																		"§8Price: §7%price%",
+																		"§8Seller: §7%seller%",
+																		"§8Product ID: §7%item-id%",
+																		"§8Auction Room: §7%room-id%"));
+		
+		cc.addDefault("minebay.economy.tokenenchant.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% token(s), needed: %needed-balance% token(s))");
+		cc.addDefault("minebay.economy.tokenenchant.currency-name.singular", "token");
+		cc.addDefault("minebay.economy.tokenenchant.currency-name.plural", "tokens");
+		
+		cc.addDefault("minebay.economy.reserve.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% %currency-name-plural%, needed: %needed-balance% %currency-name-plural%)");
+		
+		cc.applyDefaults();
+		return cc;
 	}
 	
 	public static String getFriendlyTypeName(Material material) {
-//		MaterialLookup lookup = MaterialLookup.byMaterial(data);
-//		return lookup != null ? lookup.getFriendlyName() : data.getItemType().toString().toLowerCase().replace("_", " ");
 		return material.name().toLowerCase().replace("_", " "); // TODO
 	}
 	
@@ -414,11 +403,8 @@ public class Config {
 	}
 
 	public static void reload() {
-		try {
-			config.reloadConfig(false);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		config.clear();
+		config.loadFromFile();
 	}
 	
 }

@@ -6,12 +6,13 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 
-import me.mrletsplay.mrcore.bukkitimpl.BukkitCustomConfig;
+import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
+import me.mrletsplay.mrcore.config.ConfigLoader;
 
 public class AuctionRooms {
 	
 	private static File configFile = new File("plugins/MineBay/AuctionRooms", "AuctionRooms.yml");
-	public static BukkitCustomConfig config = (BukkitCustomConfig) new BukkitCustomConfig(configFile).loadConfigSafely();;
+	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true);
 	
 	public static AuctionRoom createAuctionRoom(Player player, int id, boolean isDefaultRoom){
 		AuctionRoom nRoom = getNewAuctionRoom(player, id, isDefaultRoom);
@@ -21,7 +22,7 @@ public class AuctionRooms {
 			rIDs.add(nRoom.getRoomID());
 		}
 		config.set("auction-room-ids", rIDs);
-		config.saveConfigSafely();
+		config.saveToFile();
 		return nRoom;
 	}
 	
@@ -33,7 +34,7 @@ public class AuctionRooms {
 		if(roomFile.exists()){
 			roomFile.delete();
 		}
-		config.saveConfigSafely();
+		config.saveToFile();
 	}
 	
 	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){

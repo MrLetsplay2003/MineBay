@@ -38,11 +38,11 @@
   </repositories>
   
   <dependencies>
-  	<dependency>
+  	<!--<dependency>
 	    <groupId>com.github.MrLetsplay2003</groupId>
 	    <artifactId>MrCore</artifactId>
 	    <version>master-SNAPSHOT</version>
-	</dependency>
+	</dependency>-->
     <!--Spigot API-->
     <dependency>
            <groupId>org.spigotmc</groupId>

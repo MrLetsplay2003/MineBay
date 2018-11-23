@@ -3,6 +3,7 @@ name: MineBay
 version: 3.0b2
 author: MrLetsplay2003
 softdepend: [MrCore_BukkitImpl, Vault, TokenEnchant, Reserve]
+api-version: 1.13
 
 commands:
   minebay:

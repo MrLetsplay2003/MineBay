@@ -22,7 +22,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.google.common.io.Files;
 
 import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
-import me.mrletsplay.mrcore.bukkitimpl.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
@@ -42,8 +41,10 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
+import me.mrletsplay.mrcore.config.ConfigLoader;
 import me.mrletsplay.mrcore.misc.StringUtils;
 
 public class AuctionRoom {
@@ -66,7 +67,7 @@ public class AuctionRoom {
 	@SuppressWarnings("deprecation")
 	public AuctionRoom(int id, boolean isNew) {
 		roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
-		roomConfig = (BukkitCustomConfig) new BukkitCustomConfig(roomFile).loadConfigSafely();
+		roomConfig = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(roomFile), roomFile, true);
 		this.owner = roomConfig.getString("owner");
 		boolean s = false;
 		if(this.owner!=null) {
@@ -122,7 +123,7 @@ public class AuctionRoom {
 		builder.setSupplier(new ItemSupplier<SellItem>() {
 			
 			@Override
-			public GUIElement toGUIElement(GUIBuildPageItemEvent event, SellItem item) {
+			public GUIElement toGUIElement(GUIBuildPageItemEvent<SellItem> event, SellItem item) {
 				Player p = event.getPlayer();
 				return new StaticGUIElement(item.getSellItemStack(p))
 						.setAction(new GUIElementAction() {
@@ -570,7 +571,7 @@ public class AuctionRoom {
 	}
 	
 	public void saveRoomConfig(){
-		roomConfig.saveConfigSafely();
+		roomConfig.saveToFile();
 	}
 	
 	public String getOwner() {
@@ -645,7 +646,7 @@ public class AuctionRoom {
 		roomConfig.set("sold-items.ids", ids);
 		roomConfig.set("sold-items.item."+iID+".item", item.getItem());
 		roomConfig.set("sold-items.item."+iID+".seller", item.getSeller());
-		roomConfig.set("sold-items.item."+iID+".price", item.getPrice());
+		roomConfig.set("sold-items.item."+iID+".price", item.getPrice().toString());
 		saveRoomConfig();
 		updateMineBay();
 	}
