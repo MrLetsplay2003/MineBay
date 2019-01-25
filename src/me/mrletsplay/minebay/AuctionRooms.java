@@ -18,8 +18,8 @@ public class AuctionRooms {
 		AuctionRoom nRoom = getNewAuctionRoom(player, id, isDefaultRoom);
 		nRoom.saveAllSettings();
 		List<Integer> rIDs = getAuctionRoomIDs();
-		if(!rIDs.contains(nRoom.getRoomID())){
-			rIDs.add(nRoom.getRoomID());
+		if(!rIDs.contains(nRoom.getID())){
+			rIDs.add(nRoom.getID());
 		}
 		config.set("auction-room-ids", rIDs);
 		config.saveToFile();
@@ -38,7 +38,7 @@ public class AuctionRooms {
 	}
 	
 	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){
-		AuctionRoom r = new AuctionRoom(id, true);
+		AuctionRoom r = new AuctionRoom(id);
 		r.setDefaultSettings(owner!=null?(Config.use_uuids?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
 		return r;
 	}
@@ -69,7 +69,7 @@ public class AuctionRooms {
 	}
 	
 	public static AuctionRoom getAuctionRoomByID(int id){
-		return new AuctionRoom(id, false);
+		return new AuctionRoom(id);
 	}
 	
 	public static int getNewRoomID(){

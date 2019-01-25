@@ -76,7 +76,7 @@ public class SellItem{
 					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller", getSellerName(),
 					"item-id", ""+id,
-					"room-id", ""+ar.getRoomID()));
+					"room-id", ""+ar.getID()));
 	}
 	
 }

@@ -147,8 +147,8 @@ public class Config {
 		cc.addDefault("minebay.info.slot-sell.notenoughslots", "%prefix% §cYou already have reached the minimum amount of slots");
 		cc.addDefault("minebay.info.slot-sell.is-default", "%prefix% §cYou can't sell slots of auction room as it is a default auction room");
 		cc.addDefault("minebay.info.tax.success", "%prefix% §aChanged the tax to %newtax%%");
-		cc.addDefault("minebay.info.tax.toohigh", "%prefix% §cYou already have reached the maximum tax");
-		cc.addDefault("minebay.info.tax.toolow", "%prefix% §cYou can't set the tax below 0%");
+		cc.addDefault("minebay.info.tax.toohigh", "%prefix% §cYou have already reached the maximum tax");
+		cc.addDefault("minebay.info.tax.toolow", "%prefix% §cYou can't set the tax lower than 0%");
 		cc.addDefault("minebay.info.sell-room.success", "%prefix% §aSuccessfully sold your room for %price% %currency%");
 		cc.addDefault("minebay.info.sell-room.not-allowed", "%prefix% §cRoom selling is not allowed");
 		cc.addDefault("minebay.info.sell-room.not-empty", "%prefix% §cThere are still offers in your room");
@@ -373,7 +373,7 @@ public class Config {
 				.replace("%name%", ""+r.getName())
 				.replace("%taxshare%", ""+r.getTaxshare())
 				.replace("%slots%", ""+r.getSlots())
-				.replace("%roomid%", ""+r.getRoomID())
+				.replace("%roomid%", ""+r.getID())
 				.replace("%iconmaterial%", Config.getFriendlyTypeName(r.getIcon().getType())));
 		return s;
 	}

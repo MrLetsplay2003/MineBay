@@ -42,6 +42,7 @@ public class Main extends JavaPlugin{
 		if(!setupEconomy()){
 			getLogger().info("Failed to register economy! Disabling...");
 			Bukkit.getServer().getPluginManager().disablePlugin(this);
+			return;
 		}else{
 			getLogger().info("Enabled");
 		}
@@ -112,7 +113,7 @@ public class Main extends JavaPlugin{
 								return true;
 							}
 							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
-								p.openInventory(GUIs.getAuctionRoomsGUI(null).getForPlayer(p));
+								p.openInventory(GUIs.getAuctionRoomsGUI(p, null));
 								CancelTask.cancelForPlayer(p);
 							}else{
 								p.openInventory(MineBay.getMainAuctionRoom().getMineBayInv(0, p));
@@ -147,7 +148,7 @@ public class Main extends JavaPlugin{
 									if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
 										if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 											CancelTask.cancelForPlayer(p);
-											p.openInventory(GUIs.getAuctionRoomsSellGUI(null, price).getForPlayer(p));
+											p.openInventory(GUIs.getAuctionRoomsSellGUI(p, null, price));
 										}else{
 											CancelTask.cancelForPlayer(p);
 											AuctionRoom main = MineBay.getMainAuctionRoom();
@@ -179,7 +180,7 @@ public class Main extends JavaPlugin{
 						}
 						if(Config.config.getBoolean("minebay.general.enable-user-rooms") && (Config.config.getBoolean("minebay.general.allow-room-creation") || p.hasPermission("minebay.user-rooms.create.when-disallowed"))){
 							if(MineBay.hasPermissionToCreateRoom(p)){
-								p.openInventory(GUIs.buyRoomGUI().getForPlayer(p));
+								p.openInventory(GUIs.buyRoomGUI(p));
 
 							}else{
 								p.sendMessage(Config.getMessage("minebay.info.room-create.error.too-many-rooms"));
@@ -193,7 +194,7 @@ public class Main extends JavaPlugin{
 							r.setSlots(-1);
 							r.saveAllSettings();
 							MineBay.updateRoomSelection();
-							p.openInventory(r.getSettingsGUI().getForPlayer(p));
+							p.openInventory(GUIs.getAuctionRoomSettingsGUI(p, r.getID()));
 							p.sendMessage(Config.replaceForAuctionRoom(Config.getMessage("minebay.info.room-created"), r));
 						}else{
 							sendCommandHelp(p);
