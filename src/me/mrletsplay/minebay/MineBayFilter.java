@@ -58,29 +58,4 @@ public class MineBayFilter {
 		return Config.itemFilter.stream().anyMatch(i -> i.matches(item));
 	}
 	
-//	public static class MineBayFilterObjectMapper extends ObjectMapper<MineBayFilterItem>{
-//
-//		public MineBayFilterObjectMapper() {
-//			super(MineBayFilterItem.class);
-//		}
-//
-//		@Override
-//		public Map<String, Object> mapObject(MineBayFilterItem object) {
-//			Map<String, Object> map = new HashMap<>();
-//			map.put("item", object.item);
-//			map.put("ignored-parameters", object.ignoredParameters.stream().map(p -> p.name()).collect(Collectors.toList()));
-//			return map;
-//		}
-//
-//		@SuppressWarnings("unchecked")
-//		@Override
-//		public MineBayFilterItem constructObject(Map<String, Object> map) {
-//			if(!requireKeys(map, "item", "ignored-parameters")) return null;
-//			ItemStack it = castGeneric(map.get("item"), ItemStack.class);
-//			List<ComparisonParameter> params = ((List<String>) map.get("ignored-parameters")).stream().map(s -> ComparisonParameter.valueOf(s.toUpperCase())).collect(Collectors.toList());
-//			return new MineBayFilterItem(it, params);
-//		}
-//		
-//	}
-	
 }

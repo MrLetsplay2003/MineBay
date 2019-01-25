@@ -101,7 +101,6 @@ public class Main extends JavaPlugin{
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-//		((Player)sender).getInventory().addItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"));
 		if(command.getName().equalsIgnoreCase("minebay")){
 			if(sender instanceof Player){
 				Player p = (Player)sender;

@@ -13,20 +13,6 @@ public class MineBay {
 	}
 	
 	public static void updateRoomSelection(){
-//		for(Player pl : Bukkit.getOnlinePlayers()){
-//			Inventory oI = getOpenInv(pl);
-//			if(oI == null) continue;
-//			GUI gui = GUIUtils.getGUI(oI);
-//			if(gui == null) continue;
-//			GUIHolder holder = (GUIHolder) oI.getHolder();
-//			String t = (String) holder.getProperty("minebay_type");
-//			if(t == null) continue;
-//			if(t.equals("auction rooms")){
-//				MineBay.changeInv(oI, GUIs.getAuctionRoomsGUI(pl, GUIMultiPage.getPage(oI), (String) holder.getProperty("minebay_search")));
-//			}else if(t.equals("sell item")){
-//				MineBay.changeInv(oI, GUIs.getAuctionRoomsSellGUI((String) holder.getProperty("minebay_search"), (BigDecimal) holder.getProperty("price")).getForPlayer(pl, GUIMultiPage.getPage(oI)));
-//			}
-//		}
 		GUIs.AUCTION_ROOMS_GUI.refreshAllInstances();
 	}
 	
