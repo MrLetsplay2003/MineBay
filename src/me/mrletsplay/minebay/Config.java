@@ -73,7 +73,7 @@ public class Config {
 		config.addDefault("minebay.user-rooms.offers-per-slot", 5);
 		config.addDefault("minebay.user-rooms.max-name-length", 20);
 		config.addDefault("minebay.user-rooms.max-rooms", 3);
-		config.addDefault("minebay.user-rooms.default-icon-material", "GRASS");
+		config.addDefault("minebay.user-rooms.default-icon-material", VersionedMaterial.GRASS_BLOCK.getCurrentMaterialDefinition().getMaterialName());
 		config.addDefault("minebay.user-rooms.custom-icon-price", 100);
 		List<String> perms = new ArrayList<>();
 		perms.add("user.premium");
