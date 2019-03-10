@@ -93,7 +93,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "ï¿½0"));
 		builder.addElement(45, gPane);
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
@@ -132,7 +132,7 @@ public class GUIs {
 								@Override
 								public void onAction(GUIElementActionEvent e) {
 									if(room.getOccupiedSlots() < room.getSlots() || room.getSlots() == -1){
-										if(room.getSoldItemsBySeller((Player) p).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
+										if(room.getSoldItemsBySeller(p).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
 											if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
 												SellItem it = new SellItem(((Player)p).getItemInHand(), room, (Config.use_uuids?p.getUniqueId().toString():p.getName()), price, room.getNewItemID());
 												room.addSellItem(it);
@@ -188,7 +188,7 @@ public class GUIs {
 	private static GUI buildConfirmGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 3);
 
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "ï¿½0"));
 		for(int i = 0; i < 27; i++) {
 			builder.addElement(i, gPane);
 		}
@@ -420,7 +420,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "ï¿½0"));
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
 		builder.addElement(48, gPane);
@@ -482,16 +482,25 @@ public class GUIs {
 			@SuppressWarnings("deprecation")
 			@Override
 			public void onAction(GUIActionEvent e) {
-				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
-					int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
-					Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
-					int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
-					if(maxTime>0){
-						Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
+				if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
+					if(r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
+						if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
+							int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
+							Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
+							int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
+							if(maxTime>0){
+								Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
+							}
+							e.getEvent().setCursor(new ItemStack(Material.AIR));
+							e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
+							e.getPlayer().closeInventory();
+						}
+					}else{
+						e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
 					}
-					e.getEvent().setCursor(new ItemStack(Material.AIR));
-					e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
-					e.getPlayer().closeInventory();
+				}else{
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.no-slots"));
 				}
 				e.setCancelled(true);
 			}
@@ -501,7 +510,7 @@ public class GUIs {
 	
 	private static GUI buildAuctionRoomSettingsGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 6);
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "ï¿½0"));
 		for(int i = 0; i < 9*6; i++) {
 			builder.addElement(i, gPane);
 		}
@@ -801,7 +810,7 @@ public class GUIs {
 	
 	private static GUI buildAuctionRoomCustomIconGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 1);
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "ï¿½0"));
 		for(int i = 0; i < 9; i++) {
 			builder.addElement(i, gPane);
 		}
