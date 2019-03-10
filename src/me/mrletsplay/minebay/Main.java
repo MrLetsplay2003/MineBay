@@ -200,7 +200,7 @@ public class Main extends JavaPlugin{
 						}
 					}else if(args[0].equalsIgnoreCase("version")){
 						if(p.hasPermission("minebay.version")){
-							p.sendMessage("Current MineBay version: ง7"+PLUGIN_VERSION);
+							p.sendMessage("Current MineBay version: ยง7"+PLUGIN_VERSION);
 							if(Config.config.getBoolean("minebay.general.update-check-on-command")){
 								UpdateChecker.checkForUpdate(p);
 							}
@@ -226,7 +226,7 @@ public class Main extends JavaPlugin{
 					return true;
 				}
 			}else{
-				sender.sendMessage("งcThe console can't use MineBay");
+				sender.sendMessage("ยงcThe console can't use MineBay");
 				return true;
 			}
 		}
@@ -234,23 +234,23 @@ public class Main extends JavaPlugin{
 	}
 
 	private void sendCommandHelp(Player p) {
-		p.sendMessage(Config.prefix+" งcHelp");
-		p.sendMessage("ง7/minebay open ง8- Opens the MineBay auction room selection menu");
-		p.sendMessage("ง7/minebay sell <Price> ง8- Put an item for sale on MineBay");
-		p.sendMessage("ง7/minebay create ง8- Create an auction room");
+		p.sendMessage(Config.prefix+" ยงcHelp");
+		p.sendMessage("ยง7/minebay open ยง8- Opens the MineBay auction room selection menu");
+		p.sendMessage("ยง7/minebay sell <Price> ยง8- Put an item for sale on MineBay");
+		p.sendMessage("ยง7/minebay create ยง8- Create an auction room");
 		if(p.hasPermission("minebay.reload")){
-			p.sendMessage("ง7/minebay reload ง8- Reload the MineBay config");
+			p.sendMessage("ยง7/minebay reload ยง8- Reload the MineBay config");
 		}
 		if(p.hasPermission("minebay.default-rooms.create")){
-			p.sendMessage("ง7/minebay createdefault ง8- Create a default auction room (Auction room with no owner)");
+			p.sendMessage("ยง7/minebay createdefault ยง8- Create a default auction room (Auction room with no owner)");
 		}
 		if(p.hasPermission("minebay.version")){
-			p.sendMessage("ง7/minebay version ง8- Shows the MineBay version and checks for an update (if enabled)");
+			p.sendMessage("ยง7/minebay version ยง8- Shows the MineBay version and checks for an update (if enabled)");
 		}
 		if(p.hasPermission("minebay.filter")) {
-			p.sendMessage("ง7/minebay filter ง8- Shows all the items on the filter");
-			p.sendMessage("ง7/minebay filter add [Excluded comparison parameters...] ง8- Adds an item to the filter");
-			p.sendMessage("ง7/minebay filter remove <index> ง8- Removed the item at the specified index from the filter");
+			p.sendMessage("ยง7/minebay filter ยง8- Shows all the items on the filter");
+			p.sendMessage("ยง7/minebay filter add [Excluded comparison parameters...] ยง8- Adds an item to the filter");
+			p.sendMessage("ยง7/minebay filter remove <index> ยง8- Removed the item at the specified index from the filter");
 		}
 	}
 	
