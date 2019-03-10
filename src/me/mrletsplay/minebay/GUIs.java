@@ -483,24 +483,24 @@ public class GUIs {
 			@Override
 			public void onAction(GUIActionEvent e) {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
-				if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
-					if(r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
-						if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
-							int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
-							Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
-							int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
-							if(maxTime>0){
-								Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
-							}
-							e.getEvent().setCursor(new ItemStack(Material.AIR));
-							e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
-							e.getPlayer().closeInventory();
+				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
+					if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
+						if(r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
+								int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
+								Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
+								int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
+								if(maxTime>0){
+									Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
+								}
+								e.getEvent().setCursor(new ItemStack(Material.AIR));
+								e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
+								e.getPlayer().closeInventory();
+						}else{
+							e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
 						}
 					}else{
-						e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
+						e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.no-slots"));
 					}
-				}else{
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.no-slots"));
 				}
 				e.setCancelled(true);
 			}
