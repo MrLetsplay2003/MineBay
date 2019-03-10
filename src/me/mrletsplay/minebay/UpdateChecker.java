@@ -18,7 +18,7 @@ public class UpdateChecker {
 			String ver = r.readLine();
 			if(!ver.equalsIgnoreCase(Main.PLUGIN_VERSION)){
 				for(Player p : pls){
-					p.sendMessage("§aThere's an update available for MineBay");
+					p.sendMessage("Â§aThere's an update available for MineBay");
 					p.sendMessage(ver+":");
 				}
 				String ln;
