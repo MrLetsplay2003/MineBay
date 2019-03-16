@@ -93,7 +93,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "�0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		builder.addElement(45, gPane);
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
@@ -188,7 +188,7 @@ public class GUIs {
 	private static GUI buildConfirmGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 3);
 
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "�0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		for(int i = 0; i < 27; i++) {
 			builder.addElement(i, gPane);
 		}
@@ -420,7 +420,7 @@ public class GUIs {
 						e.setCancelled(true);
 					}
 				}));
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "�0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
 		builder.addElement(48, gPane);
@@ -510,7 +510,7 @@ public class GUIs {
 	
 	private static GUI buildAuctionRoomSettingsGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 6);
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "�0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		for(int i = 0; i < 9*6; i++) {
 			builder.addElement(i, gPane);
 		}
@@ -810,7 +810,7 @@ public class GUIs {
 	
 	private static GUI buildAuctionRoomCustomIconGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 1);
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "�0"));
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
 		for(int i = 0; i < 9; i++) {
 			builder.addElement(i, gPane);
 		}

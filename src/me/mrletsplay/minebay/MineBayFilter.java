@@ -20,8 +20,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class MineBayFilter {
 	
 	public static UIMultiPage<MineBayFilterItem> filterUI = new UIBuilderMultiPage<MineBayFilterItem>()
-			.addNextPageElement("next_page", new StaticUIElement("ง8Next page").setHoverText("Click to go to the next page"))
-			.addPreviousPageElement("previous_page", new StaticUIElement("ง8Previous Page").setHoverText("Click to go to the previous page"))
+			.addNextPageElement("next_page", new StaticUIElement("ยง8Next page").setHoverText("Click to go to the next page"))
+			.addPreviousPageElement("previous_page", new StaticUIElement("ยง8Previous Page").setHoverText("Click to go to the previous page"))
 			.setLayout(new UILayoutMultiPage()
 					.addText(Config.getMessage("minebay.info.filter.header"))
 					.newLine()
