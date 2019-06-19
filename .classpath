@@ -17,7 +17,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/MrCore"/>
-	<classpathentry kind="lib" path="/home/mr/Programmieren/libs/spigot/TokenEnchantAPI.jar"/>
-	<classpathentry kind="lib" path="/home/mr/Programmieren/libs/spigot/Vault.jar"/>
+	<classpathentry kind="lib" path="/home/mr/Programming/libs/spigot/TokenEnchantAPI.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
