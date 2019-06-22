@@ -29,7 +29,7 @@ public class AuctionRoom {
 	private int roomID;
 	private String name, description;
 	private ItemStack icon;
-	private boolean isDefaultRoom;
+	private boolean isDefaultRoom, isPrivateRoom;
 //	private GUI blockSelectGUI;
 	
 	private File roomFile;
@@ -60,6 +60,7 @@ public class AuctionRoom {
 		this.description = roomConfig.getString("description");
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
+		this.isPrivateRoom = roomConfig.getBoolean("private-room");
 		this.roomID = id;
 		if(s) saveAllSettings();
 	}
@@ -70,6 +71,7 @@ public class AuctionRoom {
 		this.slots = Config.config.getInt("minebay.user-rooms.default-slot-number");
 		this.icon = new ItemStack(Material.getMaterial(Config.config.getString("minebay.user-rooms.default-icon-material")));
 		this.isDefaultRoom = isDefaultRoom;
+		this.isPrivateRoom = false;
 		if(owner!=null){
 			this.name = getOwnerName()+"'s Auction Room";
 		}else{
@@ -87,6 +89,7 @@ public class AuctionRoom {
 		roomConfig.set("description", description);
 		roomConfig.set("icon", icon);
 		roomConfig.set("default-room", isDefaultRoom);
+		roomConfig.set("private-room", isPrivateRoom);
 		saveRoomConfig();
 	}
 	
@@ -262,11 +265,12 @@ public class AuctionRoom {
 				"slots-occupied", ""+getOccupiedSlots(),
 				"tax", ""+taxshare,
 				"room-id", ""+roomID,
-				"can-edit", canEdit(p)?Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"");
+				"can-edit", canEdit(p) ? Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"",
+				"is-private", isPrivateRoom ? Config.getMessage("minebay.gui.rooms.room-item.is-private"):"");
 		List<String> fLore = new ArrayList<>();
 		for(String s2 : lore) {
 			if(!s2.contains("%description%")) {
-				fLore.add(s2);
+				if(!s2.isEmpty()) fLore.add(s2);
 				continue;
 			}
 			if(description!=null) {
@@ -288,14 +292,22 @@ public class AuctionRoom {
 		if(isDefaultRoom){
 			return 0;
 		}else{
-			int sl = (slots - Config.config.getInt("minebay.user-rooms.default-slot-number"))*Config.config.getInt("minebay.user-rooms.slot-sell-price");
+			int sl = (slots - Config.config.getInt("minebay.user-rooms.default-slot-number")) * Config.config.getInt("minebay.user-rooms.slot-sell-price");
 			int pr = Config.config.getInt("minebay.user-rooms.room-sell-price");
-			return sl+pr;
+			return sl + pr;
 		}
 	}
 	
 	public boolean isDefaultRoom() {
 		return isDefaultRoom;
+	}
+	
+	public void setPrivateRoom(boolean isPrivateRoom) {
+		this.isPrivateRoom = isPrivateRoom;
+	}
+	
+	public boolean isPrivateRoom() {
+		return isPrivateRoom;
 	}
 	
 	public boolean backupConfig(File to) {

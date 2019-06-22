@@ -356,8 +356,15 @@ public class GUIs {
 			@SuppressWarnings("deprecation")
 			@Override
 			public void onAction(GUIElementActionEvent e) {
+				e.setCancelled(true);
 				AuctionRoom r = sellIt.getRoom();
 				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice().doubleValue());
+				
+				if(!re.isTransactionSuccess()) {
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
+					return;
+				}
+				
 				OfflinePlayer seller;
 				if(Config.use_uuids) {
 					seller = Bukkit.getOfflinePlayer(UUID.fromString(sellIt.getSeller()));
@@ -375,10 +382,25 @@ public class GUIs {
 				double sellerAm = round((double)((100-r.getTaxshare())*0.01)*sellIt.getPrice().doubleValue(),5);
 				double ownerAm = round((double)(r.getTaxshare()*0.01)*sellIt.getPrice().doubleValue(),5);
 				MineBayEconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
+				
+				if(!r2.isTransactionSuccess()) {
+					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice().doubleValue()); // Refund money
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
+					return;
+				}
+				
 				MineBayEconomyResponse r3 = null;
 				if(owner!=null){
 					r3 = Main.econ.depositPlayer(owner, ownerAm);
 				}
+				
+				if(!r3.isTransactionSuccess()) {
+					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice().doubleValue()); // Refund money
+					Main.econ.withdrawPlayer(owner, ownerAm); // Revoke money
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
+					return;
+				}
+				
 				if(re.isTransactionSuccess() && r2.isTransactionSuccess()){
 					if((owner!=null && r3!=null && r3.isTransactionSuccess()) || owner==null){
 						e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.success"), sellIt, r));
@@ -394,7 +416,6 @@ public class GUIs {
 						}
 					}
 				}
-				e.setCancelled(true);
 			}
 		});
 //		base.getBuilder().addElement(1, new StaticGUIElement(sellIt.getConfirmItemStack()));
@@ -411,16 +432,21 @@ public class GUIs {
 		builder.addPageSlotsInRange(0, 44);
 		builder.addPreviousPageItem(52, ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
 		builder.addNextPageItem(53, ItemUtils.createItem(ItemUtils.arrowRight(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
-		builder.addElement(45, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back")))
-				.setAction(new GUIElementAction() {
-					
-					@Override
-					public void onAction(GUIElementActionEvent e) {
-						e.getPlayer().openInventory(GUIs.getAuctionRoomsGUI(e.getPlayer(), null));
-						e.setCancelled(true);
-					}
-				}));
+		
 		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		if(Config.config.getBoolean("minebay.general.enable-user-rooms")) {
+			builder.addElement(45, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back")))
+					.setAction(new GUIElementAction() {
+						
+						@Override
+						public void onAction(GUIElementActionEvent e) {
+							e.getPlayer().openInventory(GUIs.getAuctionRoomsGUI(e.getPlayer(), null));
+							e.setCancelled(true);
+						}
+					}));
+		}else {
+			builder.addElement(45, gPane);
+		}
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
 		builder.addElement(48, gPane);
@@ -474,6 +500,13 @@ public class GUIs {
 					e.setCancelled(true);
 					return;
 				}
+
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
+				if(r.isPrivateRoom() && !r.isOwner(e.getPlayer())) {
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.private-room"));
+					e.setCancelled(true);
+					return;
+				}
 				e.setCancelled(!Config.config.getBoolean("minebay.general.allow-drag-and-drop"));
 			}
 		});
@@ -514,6 +547,25 @@ public class GUIs {
 		for(int i = 0; i < 9*6; i++) {
 			builder.addElement(i, gPane);
 		}
+		
+		builder.addElement(8, new GUIElement() {
+			
+			@Override
+			public ItemStack getItem(GUIBuildEvent event) {
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) event.getGUIHolder().getProperty(Main.pl, "room_id"));
+				return ItemUtils.createItem(r.isPrivateRoom() ? VersionedMaterial.RED_BANNER : VersionedMaterial.GREEN_BANNER, 1,
+						Config.getMessage(r.isPrivateRoom() ? "minebay.gui.room-settings.private-room.private.name" : "minebay.gui.room-settings.private-room.public.name"),
+						Config.getMessageList(r.isPrivateRoom() ? "minebay.gui.room-settings.private-room.private.lore" : "minebay.gui.room-settings.private-room.public.lore"));
+			}
+		}.setAction(event -> {
+			AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) event.getGUIHolder().getProperty(Main.pl, "room_id"));
+			r.setPrivateRoom(!r.isPrivateRoom());
+			r.saveAllSettings();
+			r.updateSettings();
+			MineBay.updateRoomSelection();
+			event.setCancelled(true);
+		}));
+		
 		builder.addElement(10, new GUIElement() {
 
 			@Override

@@ -123,6 +123,7 @@ public class Config {
 		cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
 		cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
 		cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
+		cc.addDefault("minebay.info.sell.error.private-room", "%prefix% §cThis room is a private room, meaning that only the owner can sell items in it");
 		cc.addDefault("minebay.info.newname", "%prefix% §aType in a new name (Max. %maxchars% Characters)");
 		cc.addDefault("minebay.info.newname-cancelled", "%prefix% §cOld rename action cancelled!");
 		cc.addDefault("minebay.info.newname-applied", "%prefix% §aName changed to: %newname%");
@@ -234,9 +235,18 @@ public class Config {
 		cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.lore", Arrays.asList(
 																		"§7Drop your item here"));
 		
+		cc.addDefault("minebay.gui.room-settings.private-room.private.name", "§cRoom is private");
+		cc.addDefault("minebay.gui.room-settings.private-room.private.lore", Arrays.asList(
+																		"§7Nobody can sell items in this room except you"));
+		
+		cc.addDefault("minebay.gui.room-settings.private-room.public.name", "§aRoom is public");
+		cc.addDefault("minebay.gui.room-settings.private-room.public.lore", Arrays.asList(
+																		"§7Everyone is allowed to sell items in this room"));
+		
 		cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
 		cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
 		cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
+		cc.addDefault("minebay.gui.rooms.room-item.is-private", "§cPrivate room");
 		cc.addDefault("minebay.gui.rooms.room-item.can-edit", "§7Right-click for settings");
 		cc.addDefault("minebay.gui.rooms.room-item.lore", Arrays.asList(
 																		"§8Owner: §7%owner%",
@@ -244,6 +254,7 @@ public class Config {
 																		"§8Tax: §7%tax%%",
 																		"§8ID: §7%room-id%",
 																		"§8Description: §7%description%",
+																		"%is-private%",
 																		"%can-edit%"
 																	));
 		
