@@ -37,7 +37,7 @@ public class AuctionRoom {
 	
 	@SuppressWarnings("deprecation")
 	public AuctionRoom(int id) {
-		roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
+		roomFile = new File(Main.pl.getDataFolder(), "AuctionRooms/" + id + ".yml");
 		roomConfig = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(roomFile), roomFile, true);
 		this.owner = roomConfig.getString("owner");
 		boolean s = false;

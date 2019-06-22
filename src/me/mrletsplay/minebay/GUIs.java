@@ -518,7 +518,9 @@ public class GUIs {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
 				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
 					if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
-						if(r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
+						if(r.isDefaultRoom() ?
+								MineBay.hasPermissionToCreateDefaultRoomSale(r, e.getPlayer())
+								: (r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot"))){
 								int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
 								Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
 								int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");

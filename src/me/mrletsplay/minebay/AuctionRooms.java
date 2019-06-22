@@ -11,7 +11,7 @@ import me.mrletsplay.mrcore.config.ConfigLoader;
 
 public class AuctionRooms {
 	
-	private static File configFile = new File("plugins/MineBay/AuctionRooms", "AuctionRooms.yml");
+	private static File configFile = new File(Main.pl.getDataFolder(), "AuctionRooms/AuctionRooms.yml");
 	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true);
 	
 	public static AuctionRoom createAuctionRoom(Player player, int id, boolean isDefaultRoom){
@@ -30,10 +30,8 @@ public class AuctionRooms {
 		List<Integer> rIDs = getAuctionRoomIDs();
 		rIDs.remove((Integer)id);
 		config.set("auction-room-ids", rIDs);
-		File roomFile = new File("plugins/MineBay/AuctionRooms", id+".yml");
-		if(roomFile.exists()){
-			roomFile.delete();
-		}
+		File roomFile = new File(Main.pl.getDataFolder(), "AuctionRooms/" + id + ".yml");
+		if(roomFile.exists()) roomFile.delete();
 		config.saveToFile();
 	}
 	

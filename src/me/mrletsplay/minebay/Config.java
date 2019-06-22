@@ -62,6 +62,7 @@ public class Config {
 		aliases.add("/market");
 		aliases.add("/mb");
 		config.addDefault("minebay.general.command-aliases", aliases);
+		config.addDefault("minebay.general.max-default-room-sales", 5);
 		config.addDefault("minebay.user-rooms.room-price", 1000);
 		config.addDefault("minebay.user-rooms.room-sell-price", 900);
 		config.addDefault("minebay.user-rooms.slot-price", 100);
@@ -82,9 +83,11 @@ public class Config {
 		config.addDefault("room-perm.user.premium.max-rooms", 5);
 		config.addDefault("room-perm.user.premium.allow-colored-names", false);
 		config.addDefault("room-perm.user.premium.allow-colored-descriptions", true);
+		config.addDefault("room-perm.user.premium.max-default-room-sales", 10);
 		config.addDefault("room-perm.user.donator.max-rooms", 7);
 		config.addDefault("room-perm.user.donator.allow-colored-names", true);
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
+		config.addDefault("room-perm.user.donator.max-default-room-sales", 15);
 		
 		config.applyDefaults();
 		

@@ -47,10 +47,7 @@ public class MineBay {
 			}
 		}
 		List<AuctionRoom> rooms = AuctionRooms.getAuctionRoomsByOwner(p.getName());
-		if(rooms.size() < mRooms || mRooms == -1){
-			return true;
-		}
-		return false;
+		return rooms.size() < mRooms || mRooms == -1;
 	}
 	
 	public static boolean hasPermissionForColoredNames(Player p){
@@ -81,6 +78,18 @@ public class MineBay {
 			}
 		}
 		return false;
+	}
+	
+	public static boolean hasPermissionToCreateDefaultRoomSale(AuctionRoom rm, Player p){
+		int mSales = Config.config.getInt("minebay.general.max-default-room-sales");
+		for(String perm : Config.config.getStringList("room-perms")){
+			if(p.hasPermission(perm)){
+				int r = Config.config.getInt("room-perm."+perm+".max-default-room-sales");
+				if(r > mSales) mSales = r;
+			}
+		}
+		List<SellItem> its = rm.getSoldItemsBySeller(p);
+		return its.size() < mSales;
 	}
 	
 }
