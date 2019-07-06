@@ -14,8 +14,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
+import me.mrletsplay.minebay.notifications.CancelledOffer;
+import me.mrletsplay.minebay.notifications.PlayerData;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
@@ -35,6 +38,7 @@ import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.versioned.NMSVersion;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
 import me.mrletsplay.mrcore.misc.QuickMap;
@@ -46,6 +50,7 @@ public class GUIs {
 	public static final GUIMultiPage<SellItem> AUCTION_ROOM_GUI = buildAuctionRoomGUI();
 	public static final GUI AUCTION_ROOM_SETTINGS_GUI = buildAuctionRoomSettingsGUI();
 	public static final GUI AUCTION_ROOM_CUSTOM_ICON_GUI = buildAuctionRoomCustomIconGUI();
+	public static final GUIMultiPage<OfflinePlayer> AUCTION_ROOM_PLAYER_LIST_GUI = buildAuctionRoomPlayerListGUI();
 	
 	private static GUIMultiPage<AuctionRoom> buildAuctionRoomsGUI(){
 		GUIBuilderMultiPage<AuctionRoom> builder = new GUIBuilderMultiPage<>(Config.prefix, 6);
@@ -458,21 +463,27 @@ public class GUIs {
 							@Override
 							public void onAction(GUIElementActionEvent e) {
 								AuctionRoom room = item.getRoom();
-								if(item.getSeller()!=null && !item.isSeller(p)){
-									p.closeInventory();
-									p.openInventory(GUIs.purchaseItemGUI(p, item));
-								}else{
-									if(!Config.sellPermission.equalsIgnoreCase("none") && !e.getPlayer().hasPermission(Config.sellPermission)) {
-										e.getPlayer().sendMessage(Config.getMessage("minebay.info.permission-missing.sell"));
-										e.setCancelled(true);
-										return;
-									}
-									HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item.getItem());
-									for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
-										p.getWorld().dropItem(p.getLocation(), me.getValue());
-									}
+								if(e.getClickType().isRightClick() && room.canEdit(p) && !item.isSeller(p)) {
+									PlayerData.addOfflineNotification(item.getSellerPlayer(), new CancelledOffer(item));
 									room.removeSellItem(item.getID());
-									p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.retract-sale.success")));
+									p.sendMessage(Config.getMessage("minebay.info.offer-cancelled", "seller", item.getSellerName()));
+								}else {
+									if(item.getSeller() != null && !item.isSeller(p)){
+										p.closeInventory();
+										p.openInventory(GUIs.purchaseItemGUI(p, item));
+									}else{
+										if(!Config.sellPermission.equalsIgnoreCase("none") && !e.getPlayer().hasPermission(Config.sellPermission)) {
+											e.getPlayer().sendMessage(Config.getMessage("minebay.info.permission-missing.sell"));
+											e.setCancelled(true);
+											return;
+										}
+										HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item.getItem());
+										for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
+											p.getWorld().dropItem(p.getLocation(), me.getValue());
+										}
+										room.removeSellItem(item.getID());
+										p.sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.retract-sale.success")));
+									}
 								}
 								e.setCancelled(true);
 							}
@@ -496,8 +507,8 @@ public class GUIs {
 				}
 
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
-				if(r.isPrivateRoom() && !r.isOwner(e.getPlayer())) {
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.private-room"));
+				if(!r.canSell(e.getPlayer())) {
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.missing-access"));
 					e.setCancelled(true);
 					return;
 				}
@@ -560,6 +571,20 @@ public class GUIs {
 			r.updateSettings();
 			MineBay.updateRoomSelection();
 			event.setCancelled(true);
+		}));
+		
+		builder.addElement(7, new GUIElement() {
+			
+			@Override
+			public ItemStack getItem(GUIBuildEvent event) {
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) event.getGUIHolder().getProperty(Main.pl, "room_id"));
+				return ItemUtils.createItem(r.isPrivateRoom() ? VersionedMaterial.SKELETON_SKULL : VersionedMaterial.WITHER_SKELETON_SKULL, 1,
+						Config.getMessage(r.isPrivateRoom() ? "minebay.gui.room-settings.private-room.whitelist.name" : "minebay.gui.room-settings.private-room.blacklist.name"),
+						Config.getMessageList(r.isPrivateRoom() ? "minebay.gui.room-settings.private-room.whitelist.lore" : "minebay.gui.room-settings.private-room.blacklist.lore"));
+			}
+		}.setAction(event -> {
+			event.getPlayer().openInventory(getAuctionRoomPlayerListGUI(event.getPlayer(), (int) event.getGUIHolder().getProperty(Main.pl, "room_id"), 0));
+			event.setCancelled(true); // TODO
 		}));
 		
 		builder.addElement(10, new GUIElement() {
@@ -912,6 +937,72 @@ public class GUIs {
 		return builder.build();
 	}
 	
+	private static GUIMultiPage<OfflinePlayer> buildAuctionRoomPlayerListGUI() {
+		GUIBuilderMultiPage<OfflinePlayer> builder = new GUIBuilderMultiPage<>(Config.prefix, 4);
+		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		for(int i = 27; i < 36; i++) {
+			builder.addElement(i, gPane);
+		}
+		
+		builder.addElement(27, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"))).setAction(new GUIElementAction() {
+			
+			@Override
+			public void onAction(GUIElementActionEvent e) {
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
+				e.getPlayer().openInventory(getAuctionRoomSettingsGUI(e.getPlayer(), r.getID()));
+				e.setCancelled(true);
+			}
+		}));
+		
+		builder.addElement(28, new StaticGUIElement(ItemUtils.plus(VersionedDyeColor.WHITE)).setAction(event -> {
+			int roomID = (int) event.getGUIHolder().getProperty(Main.pl, "room_id");
+			Events.addPlayer.put(event.getPlayer().getUniqueId(), roomID);
+			int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
+			if(maxTime>0){
+				Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(event.getPlayer()), maxTime * 20);
+			}
+			event.getPlayer().closeInventory();
+			event.getPlayer().sendMessage(Config.getMessage("minebay.info.addplayer"));
+		}));
+
+		builder.addPreviousPageItem(34, ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
+		builder.addNextPageItem(35, ItemUtils.createItem(ItemUtils.arrowRight(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
+		
+		builder.setSupplier(new ItemSupplier<OfflinePlayer>() {
+
+			@SuppressWarnings("deprecation")
+			@Override
+			public GUIElement toGUIElement(GUIBuildPageItemEvent<OfflinePlayer> event, OfflinePlayer item) {
+				ItemStack it = ItemUtils.createItem(VersionedMaterial.PLAYER_HEAD, 1,
+						Config.getMessage("minebay.gui.player-list.item.name", "player", item.getName()),
+						Config.getMessageList("minebay.gui.player-list.item.lore"));
+				SkullMeta s = (SkullMeta) it.getItemMeta();
+				if(NMSVersion.getCurrentServerVersion().isNewerThanOrEqualTo(NMSVersion.V1_12_R1)) {
+					s.setOwningPlayer(item);
+				}else {
+					s.setOwner(item.getName());
+				}
+				it.setItemMeta(s);
+				return new StaticGUIElement(it).setAction(e -> {
+					AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
+					r.removePlayerFromList(item);
+					r.saveAllSettings();
+					r.updatePlayerList();
+				});
+			}
+			
+			@Override
+			public List<OfflinePlayer> getItems(GUIBuildEvent event) {
+				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) event.getGUIHolder().getProperty(Main.pl, "room_id"));
+				return r.getPlayerList();
+			}
+		});
+		
+		builder.addPageSlotsInRange(0, 26);
+		
+		return builder.build();
+	}
+	
 	public static Inventory getAuctionRoomGUI(Player forPlayer, int roomID, int page) {
 		return AUCTION_ROOM_GUI.getForPlayer(forPlayer, page, Main.pl, new QuickMap<String, Object>().put("room_id", roomID).makeHashMap());
 	}
@@ -922,6 +1013,10 @@ public class GUIs {
 	
 	public static Inventory getAuctionRoomCustomIconGUI(Player forPlayer, int roomID) {
 		return AUCTION_ROOM_CUSTOM_ICON_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("room_id", roomID).makeHashMap());
+	}
+	
+	public static Inventory getAuctionRoomPlayerListGUI(Player forPlayer, int roomID, int page) {
+		return AUCTION_ROOM_PLAYER_LIST_GUI.getForPlayer(forPlayer, page, Main.pl, new QuickMap<String, Object>().put("room_id", roomID).makeHashMap());
 	}
 	
 }

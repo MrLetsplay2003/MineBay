@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -28,6 +29,11 @@ public class SellItem{
 	
 	public String getSeller() {
 		return seller;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public OfflinePlayer getSellerPlayer() {
+		return Config.use_uuids ? Bukkit.getOfflinePlayer(UUID.fromString(seller)) : Bukkit.getOfflinePlayer(seller);
 	}
 	
 	public boolean isSeller(Player p) {
@@ -67,7 +73,8 @@ public class SellItem{
 					"price", price+" "+Main.econ.getCurrencyNamePlural(),
 					"seller-name", getSellerName(),
 					"item-id", ""+id,
-					"retract-sale", (isSeller(p)?Config.getMessage("minebay.gui.room.sold-item.retract-sale"):"")
+					"retract-sale", (isSeller(p)?Config.getMessage("minebay.gui.room.sold-item.retract-sale"):""),
+					"remove-sale", (getRoom().canEdit(p) && !isSeller(p)?Config.getMessage("minebay.gui.room.sold-item.remove-sale"):"")
 				));
 	}
 	

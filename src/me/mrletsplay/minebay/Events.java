@@ -2,8 +2,11 @@ package me.mrletsplay.minebay;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -11,6 +14,8 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
+import me.mrletsplay.minebay.notifications.OfflineNotification;
+import me.mrletsplay.minebay.notifications.PlayerData;
 import net.md_5.bungee.api.ChatColor;
 
 public class Events implements Listener{
@@ -18,7 +23,9 @@ public class Events implements Listener{
 	public static HashMap<UUID, Integer> changeName = new HashMap<>();
 	public static HashMap<UUID, Object[]> sellItem = new HashMap<>();
 	public static HashMap<UUID, Integer> changeDescription = new HashMap<>();
+	public static HashMap<UUID, Integer> addPlayer = new HashMap<>();
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent e){
 		if(changeName.containsKey(e.getPlayer().getUniqueId())){
@@ -64,10 +71,34 @@ public class Events implements Listener{
 				SellItem it = new SellItem(item, r, (Config.use_uuids?e.getPlayer().getUniqueId().toString():e.getPlayer().getName()), pr, r.getNewItemID());
 				r.addSellItem(it);
 				e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, r));
+				Bukkit.getScheduler().runTask(Main.pl, () -> e.getPlayer().openInventory(GUIs.getAuctionRoomGUI(e.getPlayer(), roomID, 0)));
 				sellItem.remove(e.getPlayer().getUniqueId());
 			}catch(NumberFormatException ex){
 				e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.invalid-price"));
 			}
+			e.setCancelled(true);
+		}else if(addPlayer.containsKey(e.getPlayer().getUniqueId())) {
+			String nName = e.getMessage();
+			int room = addPlayer.get(e.getPlayer().getUniqueId());
+			addPlayer.remove(e.getPlayer().getUniqueId());
+			AuctionRoom r = AuctionRooms.getAuctionRoomByID(room);
+			OfflinePlayer pl = Bukkit.getOfflinePlayer(nName);
+			if(!pl.hasPlayedBefore()) {
+				e.getPlayer().sendMessage(Config.getMessage("minebay.info.addplayer-not-played"));
+				e.setCancelled(true);
+				return;
+			}
+			if(r.isPlayerOnList(pl)) {
+				e.getPlayer().sendMessage(Config.getMessage("minebay.info.addplayer-already-on-list"));
+				e.setCancelled(true);
+				return;
+			}
+			r.addPlayerToList(pl);
+			r.saveAllSettings();
+			r.updatePlayerList();
+			MineBay.updateRoomSelection();
+			e.getPlayer().sendMessage(Config.getMessage("minebay.info.addplayer-applied", "player", pl.getName()));
+			Bukkit.getScheduler().runTask(Main.pl, () -> e.getPlayer().openInventory(GUIs.getAuctionRoomPlayerListGUI(e.getPlayer(), room, 0)));
 			e.setCancelled(true);
 		}
 	}
@@ -78,6 +109,12 @@ public class Events implements Listener{
 			if(Config.config.getBoolean("minebay.general.enable-update-check") && Config.config.getBoolean("minebay.general.update-check-on-join")){
 				UpdateChecker.checkForUpdate(e.getPlayer());
 			}
+		}
+		
+		List<OfflineNotification> offn = PlayerData.getOfflineNotifications(e.getPlayer());
+		if(!offn.isEmpty()) {
+			PlayerData.resetOfflineNotifications(e.getPlayer());
+			offn.forEach(n -> n.send(e.getPlayer()));
 		}
 	}
 	

@@ -33,6 +33,9 @@ public class CancelTask implements Runnable{
 		}else if(Events.changeDescription.containsKey(p.getUniqueId())) {
 			p.sendMessage(Config.getMessage("minebay.info.newdescription-cancelled"));
 			Events.changeDescription.remove(p.getUniqueId());
+		}else if(Events.addPlayer.containsKey(p.getUniqueId())) {
+			p.sendMessage(Config.getMessage("minebay.info.addplayer-cancelled"));
+			Events.addPlayer.remove(p.getUniqueId());
 		}
 	}
 

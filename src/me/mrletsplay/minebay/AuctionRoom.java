@@ -6,9 +6,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -30,7 +32,7 @@ public class AuctionRoom {
 	private String name, description;
 	private ItemStack icon;
 	private boolean isDefaultRoom, isPrivateRoom;
-//	private GUI blockSelectGUI;
+	private List<String> playerList;
 	
 	private File roomFile;
 	private BukkitCustomConfig roomConfig;
@@ -61,6 +63,7 @@ public class AuctionRoom {
 		this.icon = roomConfig.getItemStack("icon");
 		this.isDefaultRoom = roomConfig.getBoolean("default-room");
 		this.isPrivateRoom = roomConfig.getBoolean("private-room");
+		this.playerList = roomConfig.getStringList("player-list", new ArrayList<>(), false);
 		this.roomID = id;
 		if(s) saveAllSettings();
 	}
@@ -78,6 +81,7 @@ public class AuctionRoom {
 			this.name = "Default Auction Room";
 		}
 		this.description = null;
+		this.playerList = new ArrayList<>();
 		saveAllSettings();
 	}
 	
@@ -90,6 +94,7 @@ public class AuctionRoom {
 		roomConfig.set("icon", icon);
 		roomConfig.set("default-room", isDefaultRoom);
 		roomConfig.set("private-room", isPrivateRoom);
+		roomConfig.set("player-list", playerList);
 		saveRoomConfig();
 	}
 	
@@ -164,6 +169,29 @@ public class AuctionRoom {
 	
 	public ItemStack getIcon() {
 		return icon;
+	}
+	
+	public void addPlayerToList(OfflinePlayer player) {
+		playerList.add(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+	}
+	
+	public boolean isPlayerOnList(OfflinePlayer player) {
+		return playerList.contains(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+	}
+	
+	public void removePlayerFromList(OfflinePlayer player) {
+		playerList.remove(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+	}
+	
+	@SuppressWarnings("deprecation")
+	public List<OfflinePlayer> getPlayerList() {
+		return playerList.stream()
+				.map(p -> Config.use_uuids ? Bukkit.getOfflinePlayer(UUID.fromString(p)) : Bukkit.getOfflinePlayer(p))
+				.collect(Collectors.toList());
+	}
+	
+	public boolean canSell(Player p) {
+		return isOwner(p) || (isPrivateRoom == playerList.contains(Config.use_uuids ? p.getUniqueId().toString() : p.getName()));
 	}
 	
 	public void addSellItem(SellItem item){
@@ -254,6 +282,10 @@ public class AuctionRoom {
 		GUIs.AUCTION_ROOM_SETTINGS_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
 	}
 	
+	public void updatePlayerList(){
+		GUIs.AUCTION_ROOM_PLAYER_LIST_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
+	}
+	
 	public ItemStack getSelectItemStack(Player p){
 		if(icon==null) return null;
 		ItemStack newItem = icon.clone();
@@ -266,7 +298,8 @@ public class AuctionRoom {
 				"tax", ""+taxshare,
 				"room-id", ""+roomID,
 				"can-edit", canEdit(p) ? Config.getMessage("minebay.gui.rooms.room-item.can-edit"):"",
-				"is-private", isPrivateRoom ? Config.getMessage("minebay.gui.rooms.room-item.is-private"):"");
+				"is-private", isPrivateRoom ? (canSell(p) ? Config.getMessage("minebay.gui.rooms.room-item.is-private-permission") : Config.getMessage("minebay.gui.rooms.room-item.is-private-no-permission")):"",
+				"is-banned", !isPrivateRoom && !canSell(p) ? Config.getMessage("minebay.gui.rooms.room-item.is-banned") : "");
 		List<String> fLore = new ArrayList<>();
 		for(String s2 : lore) {
 			if(!s2.contains("%description%")) {

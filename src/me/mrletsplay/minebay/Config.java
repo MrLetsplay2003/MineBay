@@ -45,7 +45,7 @@ public class Config {
 		}
 	}
 	
-	public static void init(){
+	public static void init(){	
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
 		config.addDefault("minebay.general.max-type-time-seconds", -1);
@@ -126,13 +126,20 @@ public class Config {
 		cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
 		cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
 		cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
-		cc.addDefault("minebay.info.sell.error.private-room", "%prefix% §cThis room is a private room, meaning that only the owner can sell items in it");
+		cc.addDefault("minebay.info.sell.error.missing-access", "%prefix% §cYou're not allowed to sell items in this room");
+		cc.addDefault("minebay.info.offer-cancelled", "%prefix% §aSuccessfully removed the offer by §7%seller%");
+		cc.addDefault("minebay.info.notification.offer-cancelled", "%prefix% §cYour offer in the auction room §7%room% §cwas removed by the room owner");
 		cc.addDefault("minebay.info.newname", "%prefix% §aType in a new name (Max. %maxchars% Characters)");
 		cc.addDefault("minebay.info.newname-cancelled", "%prefix% §cOld rename action cancelled!");
 		cc.addDefault("minebay.info.newname-applied", "%prefix% §aName changed to: %newname%");
 		cc.addDefault("minebay.info.newdescription", "%prefix% §aType in a new description");
 		cc.addDefault("minebay.info.newdescription-cancelled", "%prefix% §c Old description change action cancelled!");
 		cc.addDefault("minebay.info.newdescription-applied", "%prefix% §aDescription changed to: %newdescription%");
+		cc.addDefault("minebay.info.addplayer", "%prefix% §aType in a player");
+		cc.addDefault("minebay.info.addplayer-cancelled", "%prefix% §cOld add player action cancelled!");
+		cc.addDefault("minebay.info.addplayer-not-played", "%prefix% §cThat player hasn't played on this server before");
+		cc.addDefault("minebay.info.addplayer-already-on-list", "%prefix% §cThat player is already on the list");
+		cc.addDefault("minebay.info.addplayer-applied", "%prefix% §aAdded player: %player%");
 		cc.addDefault("minebay.info.error.name-too-long", "%prefix% §cMaximum name length: %maxchars%");
 		cc.addDefault("minebay.info.newicon-applied", "%prefix% §aRoom icon changed to: %type%");
 		cc.addDefault("minebay.info.buy-icon.success", "%prefix% §aBought icon for %price% %currency%, room icon changed to: %type%");
@@ -182,9 +189,11 @@ public class Config {
 																	"§8Price: §7%price%",
 																	"§8Seller: §7%seller-name%",
 																	"§8Product ID: §7%item-id%",
-																	"%retract-sale%"
+																	"%retract-sale%",
+																	"%remove-sale%"
 																));
 		cc.addDefault("minebay.gui.room.sold-item.retract-sale", "§7Click to retract sale");
+		cc.addDefault("minebay.gui.room.sold-item.remove-sale", "§7Right-Click to remove sale");
 		cc.addDefault("minebay.gui.misc.previous-page", "§7Previous page");
 		cc.addDefault("minebay.gui.misc.next-page", "§7Next page");
 		cc.addDefault("minebay.gui.misc.back", "§cBack");
@@ -246,21 +255,34 @@ public class Config {
 		cc.addDefault("minebay.gui.room-settings.private-room.public.lore", Arrays.asList(
 																		"§7Everyone is allowed to sell items in this room"));
 		
+		cc.addDefault("minebay.gui.room-settings.private-room.blacklist.name", "§cBlacklist");
+		cc.addDefault("minebay.gui.room-settings.private-room.blacklist.lore", Arrays.asList(
+																		"§7These users aren't allowed to sell items in this room"));
+		
+		cc.addDefault("minebay.gui.room-settings.private-room.whitelist.name", "§aWhitelist");
+		cc.addDefault("minebay.gui.room-settings.private-room.whitelist.lore", Arrays.asList(
+																		"§7Only these users are allowed to sell items in this room"));
+		
 		cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
 		cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
 		cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
-		cc.addDefault("minebay.gui.rooms.room-item.is-private", "§cPrivate room");
+		cc.addDefault("minebay.gui.rooms.room-item.is-banned", "§cYou're banned from making sales");
+		cc.addDefault("minebay.gui.rooms.room-item.is-private-permission", "§aPrivate room");
+		cc.addDefault("minebay.gui.rooms.room-item.is-private-no-permission", "§cPrivate room");
 		cc.addDefault("minebay.gui.rooms.room-item.can-edit", "§7Right-click for settings");
 		cc.addDefault("minebay.gui.rooms.room-item.lore", Arrays.asList(
+																		"%is-private%",
+																		"%is-banned%",
 																		"§8Owner: §7%owner%",
 																		"§8Slots: §7%slots-occupied%/%slots-limit%",
 																		"§8Tax: §7%tax%%",
 																		"§8ID: §7%room-id%",
 																		"§8Description: §7%description%",
-																		"%is-private%",
 																		"%can-edit%"
 																	));
 		
+		cc.addDefault("minebay.gui.player-list.item.name", "§r%player%");
+		cc.addDefault("minebay.gui.player-list.item.lore", Arrays.asList("§7Click to remove from list"));
 		
 		
 		cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
