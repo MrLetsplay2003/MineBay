@@ -45,7 +45,7 @@ public class Config {
 		}
 	}
 	
-	public static void init(){	
+	public static void init(){
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
 		config.addDefault("minebay.general.max-type-time-seconds", -1);
