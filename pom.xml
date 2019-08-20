@@ -8,14 +8,6 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -26,6 +18,21 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>${project.basedir}</directory>
+				<includes>
+					<include>plugin.yml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>lang</directory>
+				<targetPath>lang</targetPath>
+				<includes>
+					<include>*.*</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 
 	<repositories>
@@ -37,11 +44,19 @@
 			<id>reserve-repo</id>
 			<url>https://dl.bintray.com/theneweconomy/java/</url>
 		</repository>
+		<repository>
+			<id>hywse</id>
+			<url>http://repo.hywse.eu/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
-		<!--<dependency> <groupId>com.github.MrLetsplay2003</groupId> <artifactId>MrCore</artifactId> 
-			<version>master-SNAPSHOT</version> </dependency> -->
+		<dependency>
+			<groupId>com.github.MrLetsplay2003</groupId>
+			<artifactId>MrCore</artifactId>
+			<version>master-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
 		<!--Spigot API -->
 		<dependency>
 			<groupId>org.spigotmc</groupId>
@@ -60,6 +75,11 @@
 			<artifactId>VaultAPI</artifactId>
 			<version>LATEST</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.vk2gpz.tokenenchant</groupId>
+			<artifactId>api</artifactId>
+			<version>10.0.0</version>
 		</dependency>
 	</dependencies>
 </project>
