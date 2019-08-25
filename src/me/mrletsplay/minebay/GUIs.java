@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -19,25 +20,21 @@ import org.bukkit.inventory.meta.SkullMeta;
 import me.mrletsplay.minebay.economy.MineBayEconomy.MineBayEconomyResponse;
 import me.mrletsplay.minebay.notifications.CancelledOffer;
 import me.mrletsplay.minebay.notifications.PlayerData;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ClickAction;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUI;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIAction;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIActionEvent;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuildEvent;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuildPageItemEvent;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilder;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIBuilderMultiPage;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIDragDropEvent;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIDragDropListener;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElement;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementAction;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIElementActionEvent;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIHolder;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.GUIMultiPage;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.ItemSupplier;
-import me.mrletsplay.mrcore.bukkitimpl.GUIUtils.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUI;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIBuilder;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIBuilderMultiPage;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIDragDropListener;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElement;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElementAction;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIHolder;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIMultiPage;
+import me.mrletsplay.mrcore.bukkitimpl.gui.ItemSupplier;
+import me.mrletsplay.mrcore.bukkitimpl.gui.StaticGUIElement;
+import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildEvent;
+import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildPageItemEvent;
+import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIDragDropEvent;
+import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIElementActionEvent;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.NMSVersion;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
@@ -115,9 +112,9 @@ public class GUIs {
 								
 								@Override
 								public void onAction(GUIElementActionEvent e) {
-									if(e.getButton().equals(ClickAction.LEFT_CLICK) || e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
+									if(e.getClickType().isLeftClick()){
 										p.openInventory(room.getMineBayInv(0, p));
-									}else if((e.getButton().equals(ClickAction.RIGHT_CLICK) || e.getButton().equals(ClickAction.SHIFT_RIGHT_CLICK))&& room.canEdit(p)){
+									}else if(e.getClickType().isRightClick() && room.canEdit(p)){
 										if(!Config.createPermission.equalsIgnoreCase("none") && !p.hasPermission(Config.createPermission)) {
 											p.sendMessage(Config.getMessage("minebay.info.permission-missing.create"));
 											e.setCancelled(true);
@@ -175,7 +172,7 @@ public class GUIs {
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("minebay_type", "auction rooms");
 		builder.setDefaultProperties(props);
-		return builder.build();
+		return builder.create();
 	}
 
 	public static Inventory getAuctionRoomsGUI(Player forPlayer, String owner) {
@@ -229,7 +226,7 @@ public class GUIs {
 			}
 		}));
 		
-		return builder.build();
+		return builder.create();
 	}
 	
 	public static Inventory buyRoomGUI(Player forPlayer) {
@@ -333,7 +330,7 @@ public class GUIs {
 					for(Player pl : Bukkit.getOnlinePlayers()){
 						Inventory oI = MineBay.getOpenInv(pl);
 						if(oI == null) continue;
-						GUI gui2 = GUIUtils.getGUI(oI);
+						GUI gui2 = GUI.getGUI(oI);
 						if(gui2 == null) continue;
 						GUIHolder holder = (GUIHolder) oI.getHolder();
 						String t = (String) holder.getProperty("minebay_type");
@@ -426,6 +423,7 @@ public class GUIs {
 	    return (double) Math.round(value * scale) / scale;
 	}
 	
+	@SuppressWarnings("deprecation")
 	private static GUIMultiPage<SellItem> buildAuctionRoomGUI(){
 		GUIBuilderMultiPage<SellItem> builder = new GUIBuilderMultiPage<>(Config.prefix, 6);
 		builder.addPageSlotsInRange(0, 44);
@@ -515,37 +513,32 @@ public class GUIs {
 				e.setCancelled(!Config.config.getBoolean("minebay.general.allow-drag-and-drop"));
 			}
 		});
-		builder.setActionListener(new GUIAction() {
-			
-			@SuppressWarnings("deprecation")
-			@Override
-			public void onAction(GUIActionEvent e) {
-				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
-				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
-					if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
-						if(r.isDefaultRoom() ?
-								MineBay.hasPermissionToCreateDefaultRoomSale(r, e.getPlayer())
-								: (r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot"))){
-								int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
-								Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
-								int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
-								if(maxTime>0){
-									Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
-								}
-								e.getEvent().setCursor(new ItemStack(Material.AIR));
-								e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
-								e.getPlayer().closeInventory();
-						}else{
-							e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
-						}
+		builder.setActionListener(e -> {
+			AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
+			if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR) && e.getElementClicked() == null) {
+				if(r.getOccupiedSlots() < r.getSlots() || r.getSlots() == -1){
+					if(r.isDefaultRoom() ?
+							MineBay.hasPermissionToCreateDefaultRoomSale(r, e.getPlayer())
+							: (r.getSoldItemsBySeller(e.getPlayer()).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot"))){
+							int roomID = (int) e.getGUIHolder().getProperty(Main.pl, "room_id");
+							Events.sellItem.put(e.getPlayer().getUniqueId(), new Object[]{roomID, e.getItemClickedWith()});
+							int maxTime = Config.config.getInt("minebay.general.max-type-time-seconds");
+							if(maxTime>0){
+								Bukkit.getScheduler().runTaskLater(Main.pl, new CancelTask(e.getPlayer()), maxTime * 20);
+							}
+							e.getEvent().setCursor(new ItemStack(Material.AIR));
+							e.getPlayer().sendMessage(Config.simpleReplace(Config.getMessage("minebay.info.sell.type-in-price")));
+							e.getPlayer().closeInventory();
 					}else{
-						e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.no-slots"));
+						e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
 					}
+				}else{
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.no-slots"));
 				}
-				e.setCancelled(true);
 			}
+			e.setCancelled(true);
 		});
-		return builder.build();
+		return builder.create();
 	}
 	
 	private static GUI buildAuctionRoomSettingsGUI() {
@@ -675,13 +668,13 @@ public class GUIs {
 			public void onAction(GUIElementActionEvent e) {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
 				if(!r.isDefaultRoom()){
-					if(e.getButton().equals(ClickAction.LEFT_CLICK)){
+					if(e.getClickType().equals(ClickType.LEFT)){
 						if(r.getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
 							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, 1));
 						}else{
 							e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-buy.toomanyslots"));
 						}
-					}else if(e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
+					}else if(e.getClickType().equals(ClickType.SHIFT_LEFT)){
 						if(r.getSlots() + 5 <= Config.config.getInt("minebay.user-rooms.max-slots")){
 							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, 5));
 						}else if(r.getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
@@ -704,7 +697,7 @@ public class GUIs {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
 				if(!r.isDefaultRoom()){
 					if(Config.config.getBoolean("minebay.general.allow-slot-selling")){
-						if(e.getButton().equals(ClickAction.LEFT_CLICK)){
+						if(e.getClickType().equals(ClickType.LEFT)){
 							if(r.getSlots() > Config.config.getInt("minebay.user-rooms.default-slot-number")){
 								if(r.getOccupiedSlots() <= r.getSlots() - 1){
 									e.getPlayer().openInventory(GUIs.sellSlotsGUI(e.getPlayer(), r, 1));
@@ -714,7 +707,7 @@ public class GUIs {
 							}else{
 								e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-sell.notenoughslots"));
 							}
-						}else if(e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
+						}else if(e.getClickType().equals(ClickType.SHIFT_LEFT)){
 							if(r.getSlots() - 5 >= Config.config.getInt("minebay.user-rooms.default-slot-number")){
 								if(r.getOccupiedSlots() <= r.getSlots() - 5){
 									e.getPlayer().openInventory(GUIs.sellSlotsGUI(e.getPlayer(), r, 5));
@@ -761,7 +754,7 @@ public class GUIs {
 					e.setCancelled(true);
 					return;
 				}
-				if(e.getButton().equals(ClickAction.LEFT_CLICK)){
+				if(e.getClickType().equals(ClickType.LEFT)){
 					if(r.getTaxshare()<Config.config.getInt("minebay.user-rooms.max-tax-percent")){
 						r.setTaxshare(r.getTaxshare() + 1);
 						r.saveAllSettings();
@@ -773,7 +766,7 @@ public class GUIs {
 					}else{
 						e.getPlayer().sendMessage(Config.getMessage("minebay.info.tax.toohigh"));
 					}
-				}else if(e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
+				}else if(e.getClickType().equals(ClickType.SHIFT_LEFT)){
 					if(r.getTaxshare()+10<=Config.config.getInt("minebay.user-rooms.max-tax-percent")){
 						r.setTaxshare(r.getTaxshare()+10);
 						r.saveAllSettings();
@@ -808,7 +801,7 @@ public class GUIs {
 					e.setCancelled(true);
 					return;
 				}
-				if(e.getButton().equals(ClickAction.LEFT_CLICK)){
+				if(e.getClickType().equals(ClickType.LEFT)){
 					if(r.getTaxshare()>0){
 						r.setTaxshare(r.getTaxshare()-1);
 						r.saveAllSettings();
@@ -820,7 +813,7 @@ public class GUIs {
 					}else{
 						e.getPlayer().sendMessage(Config.getMessage("minebay.info.tax.toolow"));
 					}
-				}else if(e.getButton().equals(ClickAction.SHIFT_LEFT_CLICK)){
+				}else if(e.getClickType().equals(ClickType.SHIFT_LEFT)){
 					if(r.getTaxshare()>9){
 						r.setTaxshare(r.getTaxshare()-10);
 						r.saveAllSettings();
@@ -878,7 +871,7 @@ public class GUIs {
 			}
 		}));
 
-		return builder.build();
+		return builder.create();
 	}
 	
 	private static GUI buildAuctionRoomCustomIconGUI() {
@@ -934,7 +927,7 @@ public class GUIs {
 			}
 		});
 		
-		return builder.build();
+		return builder.create();
 	}
 	
 	private static GUIMultiPage<OfflinePlayer> buildAuctionRoomPlayerListGUI() {
@@ -1000,7 +993,7 @@ public class GUIs {
 		
 		builder.addPageSlotsInRange(0, 26);
 		
-		return builder.build();
+		return builder.create();
 	}
 	
 	public static Inventory getAuctionRoomGUI(Player forPlayer, int roomID, int page) {
