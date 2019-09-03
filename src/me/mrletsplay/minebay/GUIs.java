@@ -29,7 +29,7 @@ import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElementAction;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIHolder;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIMultiPage;
-import me.mrletsplay.mrcore.bukkitimpl.gui.ItemSupplier;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIItemSupplier;
 import me.mrletsplay.mrcore.bukkitimpl.gui.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildEvent;
 import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildPageItemEvent;
@@ -100,7 +100,7 @@ public class GUIs {
 		builder.addElement(46, gPane);
 		builder.addElement(47, gPane);
 		builder.addElement(48, gPane);
-		builder.setSupplier(new ItemSupplier<AuctionRoom>() {
+		builder.setSupplier(new GUIItemSupplier<AuctionRoom>() {
 			
 			@Override
 			public GUIElement toGUIElement(GUIBuildPageItemEvent<AuctionRoom> event, AuctionRoom room) {
@@ -450,7 +450,7 @@ public class GUIs {
 		builder.addElement(49, gPane);
 		builder.addElement(50, gPane);
 		builder.addElement(51, gPane);
-		builder.setSupplier(new ItemSupplier<SellItem>() {
+		builder.setSupplier(new GUIItemSupplier<SellItem>() {
 			
 			@Override
 			public GUIElement toGUIElement(GUIBuildPageItemEvent<SellItem> event, SellItem item) {
@@ -961,7 +961,7 @@ public class GUIs {
 		builder.addPreviousPageItem(34, ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
 		builder.addNextPageItem(35, ItemUtils.createItem(ItemUtils.arrowRight(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
 		
-		builder.setSupplier(new ItemSupplier<OfflinePlayer>() {
+		builder.setSupplier(new GUIItemSupplier<OfflinePlayer>() {
 
 			@SuppressWarnings("deprecation")
 			@Override
