@@ -16,7 +16,7 @@ public class UpdateChecker {
 			URL updUrl = new URL("https://graphite-official.com/api/plugin-data/MineBay/version.txt");
 			BufferedReader r = new BufferedReader(new InputStreamReader(updUrl.openStream(), StandardCharsets.UTF_8));
 			String ver = r.readLine();
-			if(!ver.equalsIgnoreCase(Main.PLUGIN_VERSION)){
+			if(!ver.equalsIgnoreCase(Main.pluginVersion)){
 				for(Player p : pls){
 					p.sendMessage("§aThere's an update available for MineBay");
 					p.sendMessage(ver+":");

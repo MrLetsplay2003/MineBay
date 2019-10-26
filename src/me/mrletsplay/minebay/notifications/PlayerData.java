@@ -30,16 +30,16 @@ public class PlayerData {
 		}
 		List<OfflineNotification> ns = getOfflineNotifications(player);
 		ns.add(notification);
-		data.set(Config.use_uuids ? player.getUniqueId().toString() : player.getName() + ".notifications", ns);
+		data.set(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications", ns);
 		data.saveToFile();
 	}
 	
 	public static List<OfflineNotification> getOfflineNotifications(OfflinePlayer player) {
-		return data.getComplex(Config.use_uuids ? player.getUniqueId().toString() : player.getName() + ".notifications", Complex.list(OfflineNotification.class), new ArrayList<>(), false);
+		return data.getComplex(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications", Complex.list(OfflineNotification.class), new ArrayList<>(), false);
 	}
 	
 	public static void resetOfflineNotifications(OfflinePlayer player) {
-		data.unset(Config.use_uuids ? player.getUniqueId().toString() : player.getName() + ".notifications");
+		data.unset(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications");
 		data.saveToFile();
 	}
 

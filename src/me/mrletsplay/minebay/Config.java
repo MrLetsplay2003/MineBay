@@ -1,15 +1,19 @@
 package me.mrletsplay.minebay;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
+import me.mrletsplay.mrcore.bukkitimpl.ItemUtils.ComparisonParameter;
 import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
 import me.mrletsplay.mrcore.config.ConfigLoader;
@@ -18,32 +22,21 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 	
-	public static File configFile = new File(Main.pl.getDataFolder(), "config.yml");
+	public static File
+			configFile = new File(Main.pl.getDataFolder(), "config.yml"),
+			pricesFile = new File(Main.pl.getDataFolder(), "prices.yml");
 	
-	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true),
-							   messages;
+	public static BukkitCustomConfig
+			config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true),
+			messages,
+			prices = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(pricesFile), pricesFile, true);
 	
-	public static boolean use_uuids, allow_tax_change;
+	public static boolean useUUIDs, allowTaxChange, enableNPCs;
 	
 	public static String prefix, mbString, economy;
 	public static String openPermission, buyPermission, sellPermission, createPermission;
 	public static List<MineBayFilterItem> itemFilter;
-	
-	public static void saveConfig(){
-		try{
-			config.saveToFile();
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-	}
-	
-	public static void saveMessages(){
-		try{
-			messages.saveToFile();
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-	}
+	public static List<MineBayItemPriceRestraints> itemPriceRestraints;
 	
 	public static void init(){
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
@@ -91,25 +84,52 @@ public class Config {
 		
 		config.applyDefaults();
 		
-		use_uuids = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
+		useUUIDs = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
+		enableNPCs = config.getBoolean("minebay.general.enable-npcs", false, true);
 		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		economy = config.getString("minebay.general.economy", "Vault", true);
-		allow_tax_change = config.getBoolean("minebay.general.allow-tax-changing", true, true);
+		allowTaxChange = config.getBoolean("minebay.general.allow-tax-changing", true, true);
 		openPermission = config.getString("minebay.general.permission.open", "none", true);
 		buyPermission = config.getString("minebay.general.permission.buy", "none", true);
 		sellPermission = config.getString("minebay.general.permission.sell", "none", true);
 		createPermission = config.getString("minebay.general.permission.create", "none", true);
 		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant, Reserve");
-		saveConfig();
+		config.saveToFile();
 		
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));
-		saveMessages();
+		messages.saveToFile();
 		
 		config.registerMapper(MineBayFilterItem.MAPPER);
 		itemFilter = config.getComplex("minebay.general.item-filter", Complex.list(MineBayFilterItem.class), Arrays.asList(
 					new MineBayFilterItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
 				), true);
+		
+		prices.registerMapper(MineBayItemPriceRestraints.MAPPER);
+		prices.setHeader(
+				" You can define minimum and maximum prices for different items here\n" +
+				" \"-1\" for min or max price is equivalent to no limit");
+		prices.setComment("type", " Type names are Bukkit material names (refer to https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html)");
+		
+		for(Material m : Material.values()) {
+			if(m.name().startsWith("LEGACY_")) continue; // Skip legacy Materials (1.13+)
+			prices.addDefault("type." + m.name() + ".min-price", "-1");
+			prices.addDefault("type." + m.name() + ".max-price", "-1");
+		}
+		
+		List<MineBayItemPriceRestraints> defaultRestraints = Arrays.asList(
+					new MineBayItemPriceRestraints(
+							new MineBayFilterItem(
+									ItemUtils.createItem(ItemUtils.arrowLeft(), "§5§lExample Banner", "§8Testing", "§8Testing Line 2"),
+									Arrays.asList(ComparisonParameter.LORE)),
+							BigDecimal.valueOf(100000),
+							BigDecimal.valueOf(100001))
+				);
+		
+		prices.addDefault("items", defaultRestraints);
+		
+		prices.applyDefaults();
+		prices.saveToFile();
 	}
 	
 	private static BukkitCustomConfig loadMessageConfig(File f) {
@@ -124,6 +144,8 @@ public class Config {
 		cc.addDefault("minebay.info.sell.error.invalid-price", "%prefix% §aType in another price");
 		cc.addDefault("minebay.info.sell.error.noitem", "%prefix% §cYou need to hold an item in your hand");
 		cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
+		cc.addDefault("minebay.info.sell.error.below-min-price", "%prefix% §cPrice is below the set miminum price of %min-price%");
+		cc.addDefault("minebay.info.sell.error.above-max-price", "%prefix% §cPrice is above the set maximum price of %max-price%");
 		cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
 		cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
 		cc.addDefault("minebay.info.sell.error.missing-access", "%prefix% §cYou're not allowed to sell items in this room");
@@ -414,30 +436,44 @@ public class Config {
 		return s;
 	}
 	
-	public static String onlyDigits(String s){
-		StringBuilder b = new StringBuilder();
-		for(char c : s.toCharArray()){
-			if(Character.isDigit(c)){
-				b.append(c);
-			}
-		}
-		return b.toString();
+	public static BigDecimal getMinimumPrice(ItemStack item) {
+		BigDecimal m = getMinimumPriceStrict(item);
+		if(m.compareTo(BigDecimal.ZERO) == 1) return m;
+		return getMinimumPrice(item.getType());
 	}
 	
-	public static String onlyDigitsNoColor(String s){
-		s = s.replaceAll("§.", "");
-		StringBuilder b = new StringBuilder();
-		for(char c : s.toCharArray()){
-			if(Character.isDigit(c) || c == '.'){
-				b.append(c);
-			}
-		}
-		String so = b.toString();
-		so = so.replaceAll("^\\.+", "");
-		so = so.replaceAll("\\.+$", "");
-		return so;
+	public static BigDecimal getMaximumPrice(ItemStack item) {
+		BigDecimal m = getMaximumPriceStrict(item);
+		if(m.compareTo(BigDecimal.ZERO) == 1) return m;
+		return getMaximumPrice(item.getType());
 	}
-
+	
+	public static BigDecimal getMinimumPrice(Material type) {
+		return new BigDecimal(prices.getString("type." + type.name() + ".min-price", "-1", false));
+	}
+	
+	public static BigDecimal getMaximumPrice(Material type) {
+		return new BigDecimal(prices.getString("type." + type.name() + ".max-price", "-1", false));
+	}
+	
+	public static BigDecimal getMinimumPriceStrict(ItemStack item) {
+		return itemPriceRestraints.stream()
+				.filter(f -> f.getItem().matches(item))
+				.map(MineBayItemPriceRestraints::getMinPrice)
+				.filter(i -> i.compareTo(BigDecimal.ZERO) == 1) // > 0
+				.sorted(Comparator.reverseOrder())
+				.findFirst().orElse(BigDecimal.valueOf(-1));
+	}
+	
+	public static BigDecimal getMaximumPriceStrict(ItemStack item) {
+		return itemPriceRestraints.stream()
+				.filter(f -> f.getItem().matches(item))
+				.map(MineBayItemPriceRestraints::getMaxPrice)
+				.filter(i -> i.compareTo(BigDecimal.ZERO) == 1) // > 0
+				.sorted()
+				.findFirst().orElse(BigDecimal.valueOf(-1));
+	}
+	
 	public static void reload() {
 		config.clear();
 		config.loadFromFile();

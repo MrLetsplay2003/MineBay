@@ -45,12 +45,12 @@ public class AuctionRoom {
 		boolean s = false;
 		if(this.owner!=null) {
 			if(Tools.isUUID(this.owner)) {
-				if(!Config.use_uuids) {
+				if(!Config.useUUIDs) {
 					Main.pl.getLogger().info("Converting room "+id+"'s owner uuid to name...");
 					this.owner = Bukkit.getPlayer(UUID.fromString(owner)).getName();
 					s = true;
 				}
-			}else if(Config.use_uuids) {
+			}else if(Config.useUUIDs) {
 				Main.pl.getLogger().info("Converting room "+id+"'s owner name to uuid...");
 				owner = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
 				s = true;
@@ -111,7 +111,7 @@ public class AuctionRoom {
 	}
 	
 	public boolean isOwner(Player p) {
-		if(Config.use_uuids) {
+		if(Config.useUUIDs) {
 			return p.getUniqueId().toString().equals(owner);
 		}else {
 			return p.getName().equals(owner);
@@ -124,7 +124,7 @@ public class AuctionRoom {
 	
 	public String getOwnerName() {
 		if(owner==null) return null;
-		if(!Config.use_uuids) {
+		if(!Config.useUUIDs) {
 			return owner;
 		}else {
 			return Bukkit.getOfflinePlayer(UUID.fromString(owner)).getName();
@@ -172,26 +172,26 @@ public class AuctionRoom {
 	}
 	
 	public void addPlayerToList(OfflinePlayer player) {
-		playerList.add(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+		playerList.add(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
 	
 	public boolean isPlayerOnList(OfflinePlayer player) {
-		return playerList.contains(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+		return playerList.contains(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
 	
 	public void removePlayerFromList(OfflinePlayer player) {
-		playerList.remove(Config.use_uuids ? player.getUniqueId().toString() : player.getName());
+		playerList.remove(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
 	
 	@SuppressWarnings("deprecation")
 	public List<OfflinePlayer> getPlayerList() {
 		return playerList.stream()
-				.map(p -> Config.use_uuids ? Bukkit.getOfflinePlayer(UUID.fromString(p)) : Bukkit.getOfflinePlayer(p))
+				.map(p -> Config.useUUIDs ? Bukkit.getOfflinePlayer(UUID.fromString(p)) : Bukkit.getOfflinePlayer(p))
 				.collect(Collectors.toList());
 	}
 	
 	public boolean canSell(Player p) {
-		return isOwner(p) || (isPrivateRoom == playerList.contains(Config.use_uuids ? p.getUniqueId().toString() : p.getName()));
+		return isOwner(p) || (isPrivateRoom == playerList.contains(Config.useUUIDs ? p.getUniqueId().toString() : p.getName()));
 	}
 	
 	public void addSellItem(SellItem item){

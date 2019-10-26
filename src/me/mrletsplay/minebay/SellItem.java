@@ -33,11 +33,11 @@ public class SellItem{
 	
 	@SuppressWarnings("deprecation")
 	public OfflinePlayer getSellerPlayer() {
-		return Config.use_uuids ? Bukkit.getOfflinePlayer(UUID.fromString(seller)) : Bukkit.getOfflinePlayer(seller);
+		return Config.useUUIDs ? Bukkit.getOfflinePlayer(UUID.fromString(seller)) : Bukkit.getOfflinePlayer(seller);
 	}
 	
 	public boolean isSeller(Player p) {
-		if(Config.use_uuids) {
+		if(Config.useUUIDs) {
 			return p.getUniqueId().toString().equals(seller);
 		}else {
 			return p.getName().equals(seller);
@@ -45,7 +45,7 @@ public class SellItem{
 	}
 	
 	public String getSellerName() {
-		if(Config.use_uuids) {
+		if(Config.useUUIDs) {
 			return Bukkit.getOfflinePlayer(UUID.fromString(seller)).getName();
 		}else {
 			return seller;

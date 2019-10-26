@@ -104,9 +104,9 @@ public class GUIs {
 			
 			@Override
 			public GUIElement toGUIElement(GUIBuildPageItemEvent<AuctionRoom> event, AuctionRoom room) {
-				boolean isSellMode = (boolean) event.getGUIHolder().getProperty(Main.pl, "sell_mode");
+				String mode = (String) event.getGUIHolder().getProperty(Main.pl, "mode");
 				Player p = event.getPlayer();
-				if(!isSellMode) {
+				if(mode.equals("none")) {
 					return new StaticGUIElement(room.getSelectItemStack(p))
 							.setAction(new GUIElementAction() {
 								
@@ -125,7 +125,7 @@ public class GUIs {
 									e.setCancelled(true);
 								}
 							});
-				}else {
+				}else if(mode.equals("sell")){
 					BigDecimal price = (BigDecimal) event.getGUIHolder().getProperty(Main.pl, "price");
 					return new StaticGUIElement(room.getSelectItemStack(p))
 							.setAction(new GUIElementAction() {
@@ -136,7 +136,7 @@ public class GUIs {
 									if(room.getOccupiedSlots() < room.getSlots() || room.getSlots() == -1){
 										if(room.getSoldItemsBySeller(p).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
 											if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
-												SellItem it = new SellItem(((Player)p).getItemInHand(), room, (Config.use_uuids?p.getUniqueId().toString():p.getName()), price, room.getNewItemID());
+												SellItem it = new SellItem(((Player)p).getItemInHand(), room, (Config.useUUIDs?p.getUniqueId().toString():p.getName()), price, room.getNewItemID());
 												room.addSellItem(it);
 												p.setItemInHand(new ItemStack(Material.AIR));
 												p.closeInventory();
@@ -156,6 +156,8 @@ public class GUIs {
 									e.setCancelled(true);
 								}
 							});
+				}else if(mode.equals("spawnnpc")) {
+					// TODO
 				}
 			}
 			
@@ -176,11 +178,15 @@ public class GUIs {
 	}
 
 	public static Inventory getAuctionRoomsGUI(Player forPlayer, String owner) {
-		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("sell_mode", false).makeHashMap());
+		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("mode", "none").makeHashMap());
 	}
 	
 	public static Inventory getAuctionRoomsSellGUI(Player forPlayer, String owner, BigDecimal price){
-		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("sell_mode", true).put("price", price).makeHashMap());
+		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("mode", "sell").put("price", price).makeHashMap());
+	}
+	
+	public static Inventory getAuctionRoomsSpawnNPCGUI(Player forPlayer, String owner) {
+		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("mode", "spawnnpc").makeHashMap());
 	}
 	
 	public static Inventory getConfirmGUI(Player forPlayer, ItemStack baseItem, GUIElementAction confirm){
@@ -368,14 +374,14 @@ public class GUIs {
 				}
 				
 				OfflinePlayer seller;
-				if(Config.use_uuids) {
+				if(Config.useUUIDs) {
 					seller = Bukkit.getOfflinePlayer(UUID.fromString(sellIt.getSeller()));
 				}else{
 					seller = Bukkit.getOfflinePlayer(sellIt.getSeller());
 				}
 				OfflinePlayer owner = null;
 				if(r.getOwner()!=null){
-					if(Config.use_uuids) {
+					if(Config.useUUIDs) {
 						owner = Bukkit.getOfflinePlayer(UUID.fromString(r.getOwner()));
 					}else {
 						owner = Bukkit.getOfflinePlayer(r.getOwner());
@@ -744,12 +750,12 @@ public class GUIs {
 			
 		});
 		
-		builder.addElement(41, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(), Config.getMessage("minebay.gui.room-settings.tax-increase.name"), Config.getMessageList("minebay.gui.room-settings.tax-increase.lore", "tax-changing-disabled", Config.allow_tax_change ? "" : Config.getMessage("minebay.gui.room-settings.tax-increase.disabled")))).setAction(new GUIElementAction() {
+		builder.addElement(41, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(), Config.getMessage("minebay.gui.room-settings.tax-increase.name"), Config.getMessageList("minebay.gui.room-settings.tax-increase.lore", "tax-changing-disabled", Config.allowTaxChange ? "" : Config.getMessage("minebay.gui.room-settings.tax-increase.disabled")))).setAction(new GUIElementAction() {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
-				if(!Config.allow_tax_change && !e.getPlayer().hasPermission("minebay.change-tax-when-disabled")) {
+				if(!Config.allowTaxChange && !e.getPlayer().hasPermission("minebay.change-tax-when-disabled")) {
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.tax-changing-disabled"));
 					e.setCancelled(true);
 					return;
@@ -791,12 +797,12 @@ public class GUIs {
 			}
 		}));
 		
-		builder.addElement(42, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowRight(), Config.getMessage("minebay.gui.room-settings.tax-decrease.name"), Config.getMessageList("minebay.gui.room-settings.tax-decrease.lore", "tax-changing-disabled", Config.allow_tax_change ? "" : Config.getMessage("minebay.gui.room-settings.tax-increase.disabled")))).setAction(new GUIElementAction() {
+		builder.addElement(42, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowRight(), Config.getMessage("minebay.gui.room-settings.tax-decrease.name"), Config.getMessageList("minebay.gui.room-settings.tax-decrease.lore", "tax-changing-disabled", Config.allowTaxChange ? "" : Config.getMessage("minebay.gui.room-settings.tax-increase.disabled")))).setAction(new GUIElementAction() {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
-				if(!Config.allow_tax_change && !e.getPlayer().hasPermission("minebay.change-tax-when-disabled")) {
+				if(!Config.allowTaxChange && !e.getPlayer().hasPermission("minebay.change-tax-when-disabled")) {
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.tax-changing-disabled"));
 					e.setCancelled(true);
 					return;

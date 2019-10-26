@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -17,13 +18,16 @@ import me.mrletsplay.minebay.economy.MineBayEconomy;
 import me.mrletsplay.minebay.economy.ReserveEconomy;
 import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
 import me.mrletsplay.minebay.economy.VaultEconomy;
+import me.mrletsplay.mrcore.misc.FriendlyException;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 
 public class Main extends JavaPlugin{
 
 	public static MineBayEconomy econ;
 	public static JavaPlugin pl;
 	
-	public static String PLUGIN_VERSION;
+	public static String pluginVersion;
 	
 	/**
 	 * Sell button
@@ -35,10 +39,11 @@ public class Main extends JavaPlugin{
 	public void onEnable() {
 		pl = this;
 		MrCoreBukkitImpl.loadMrCore(this);
-		PLUGIN_VERSION = getDescription().getVersion();
+		pluginVersion = getDescription().getVersion();
 		initConfig();
 		Bukkit.getPluginManager().registerEvents(new Events(), this);
 		getCommand("minebay").setTabCompleter(new MineBayTabCompleter());
+		
 		if(!setupEconomy()){
 			getLogger().info("Failed to register economy! Disabling...");
 			Bukkit.getServer().getPluginManager().disablePlugin(this);
@@ -46,6 +51,12 @@ public class Main extends JavaPlugin{
 		}else{
 			getLogger().info("Enabled");
 		}
+		
+		if(Config.enableNPCs) {
+			if(!Bukkit.getPluginManager().isPluginEnabled("Citizens")) throw new FriendlyException("Citizens is required in order for NPCs to function");
+			MineBayNPCs.init();
+		}
+		
 		if(!AuctionRooms.getAuctionRoomIDs().contains(0)){
 			getLogger().info("Creating default room...");
 			AuctionRoom r = AuctionRooms.createAuctionRoom(null, 0, true);
@@ -74,18 +85,21 @@ public class Main extends JavaPlugin{
 	
 	private boolean setupEconomy() {
 		String economy = Config.economy;
-		getLogger().info("Using "+economy+" economy");
+		getLogger().info("Using " + economy + " economy");
 		switch(economy.toLowerCase()) {
 			case "tokenenchant":
+				if(!Bukkit.getPluginManager().isPluginEnabled("TokenEnchant")) throw new FriendlyException("TokenEnchant economy is selected, but TokenEnchant is not present");
 				econ = new TokenEnchantEconomy();
 				return true;
 			case "vault":
+				if(!Bukkit.getPluginManager().isPluginEnabled("Vault")) throw new FriendlyException("Vault economy is selected, but Vault is not present");
 				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				if (economyProvider != null) {
 					econ = new VaultEconomy(economyProvider.getProvider());
 				}
 				return (econ != null);
 			case "reserve":
+				if(!Bukkit.getPluginManager().isPluginEnabled("Reserve")) throw new FriendlyException("Reserve economy is selected, but Reserve is not present");
 				econ = new ReserveEconomy();
 				return true;
 			default:
@@ -151,7 +165,7 @@ public class Main extends JavaPlugin{
 										}else{
 											CancelTask.cancelForPlayer(p);
 											AuctionRoom main = MineBay.getMainAuctionRoom();
-											SellItem it = new SellItem(p.getItemInHand(), main, (Config.use_uuids?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
+											SellItem it = new SellItem(p.getItemInHand(), main, (Config.useUUIDs?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
 											main.addSellItem(it);
 											p.setItemInHand(new ItemStack(Material.AIR));
 											p.sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, main));
@@ -200,7 +214,7 @@ public class Main extends JavaPlugin{
 						}
 					}else if(args[0].equalsIgnoreCase("version")){
 						if(p.hasPermission("minebay.version")){
-							p.sendMessage("Current MineBay version: §7"+PLUGIN_VERSION);
+							p.sendMessage("Current MineBay version: §7"+pluginVersion);
 							if(Config.config.getBoolean("minebay.general.update-check-on-command")){
 								UpdateChecker.checkForUpdate(p);
 							}
@@ -217,6 +231,10 @@ public class Main extends JavaPlugin{
 						}else {
 							sendCommandHelp(p);
 						}
+					}else if(args[0].equalsIgnoreCase("spawnnpc")) {
+						NPC npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Auction Room #0");
+						npc.data().setPersistent("minebay_roomid", 0);
+						npc.spawn(p.getLocation());
 					}else{
 						sendCommandHelp(p);
 						return true;
@@ -238,6 +256,7 @@ public class Main extends JavaPlugin{
 		p.sendMessage("§7/minebay open §8- Opens the MineBay auction room selection menu");
 		p.sendMessage("§7/minebay sell <Price> §8- Put an item for sale on MineBay");
 		p.sendMessage("§7/minebay create §8- Create an auction room");
+		p.sendMessage("§7/minebay spawnnpc [room id] §8- Spawn an auction room npc");
 		if(p.hasPermission("minebay.reload")){
 			p.sendMessage("§7/minebay reload §8- Reload the MineBay config");
 		}

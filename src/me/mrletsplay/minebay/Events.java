@@ -65,14 +65,24 @@ public class Events implements Listener{
 			try{
 				BigDecimal pr = new BigDecimal(price);
 				Object[] objs = sellItem.get(e.getPlayer().getUniqueId());
+				sellItem.remove(e.getPlayer().getUniqueId());
 				int roomID = (int) objs[0];
 				ItemStack item = (ItemStack) objs[1];
+				Bukkit.getScheduler().runTask(Main.pl, () -> e.getPlayer().openInventory(GUIs.getAuctionRoomGUI(e.getPlayer(), roomID, 0)));
+				BigDecimal minPrice = Config.getMinimumPrice(item);
+				if(pr.compareTo(minPrice) == -1) { // pr < minPrice
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.below-min-price", "min-price", minPrice.toString()));
+					return;
+				}
+				BigDecimal maxPrice = Config.getMaximumPrice(item);
+				if(pr.compareTo(maxPrice) == 1) { // pr < minPrice
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.above-max-price", "max-price", maxPrice.toString()));
+					return;
+				}
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-				SellItem it = new SellItem(item, r, (Config.use_uuids?e.getPlayer().getUniqueId().toString():e.getPlayer().getName()), pr, r.getNewItemID());
+				SellItem it = new SellItem(item, r, (Config.useUUIDs?e.getPlayer().getUniqueId().toString():e.getPlayer().getName()), pr, r.getNewItemID());
 				r.addSellItem(it);
 				e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, r));
-				Bukkit.getScheduler().runTask(Main.pl, () -> e.getPlayer().openInventory(GUIs.getAuctionRoomGUI(e.getPlayer(), roomID, 0)));
-				sellItem.remove(e.getPlayer().getUniqueId());
 			}catch(NumberFormatException ex){
 				e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.invalid-price"));
 			}

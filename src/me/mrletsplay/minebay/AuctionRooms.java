@@ -37,7 +37,7 @@ public class AuctionRooms {
 	
 	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){
 		AuctionRoom r = new AuctionRoom(id);
-		r.setDefaultSettings(owner!=null?(Config.use_uuids?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
+		r.setDefaultSettings(owner!=null?(Config.useUUIDs?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
 		return r;
 	}
 	

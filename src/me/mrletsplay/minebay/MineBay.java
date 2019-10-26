@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class MineBay {
 	
@@ -21,14 +20,6 @@ public class MineBay {
 			return p.getOpenInventory().getTopInventory();
 		}else{
 			return null;
-		}
-	}
-	
-	public static void changeInv(Inventory oldInv, Inventory newInv) {
-		int i = 0;
-		for (ItemStack it : newInv.getContents()) {
-			oldInv.setItem(i, it);
-			i++;
 		}
 	}
 	
