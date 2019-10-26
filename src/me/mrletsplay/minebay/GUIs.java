@@ -158,6 +158,9 @@ public class GUIs {
 							});
 				}else if(mode.equals("spawnnpc")) {
 					// TODO
+					return null;
+				}else {
+					return null;
 				}
 			}
 			
