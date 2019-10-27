@@ -38,6 +38,7 @@ import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIElementActionEvent;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.NMSVersion;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedDyeColor;
 import me.mrletsplay.mrcore.bukkitimpl.versioned.VersionedMaterial;
+import me.mrletsplay.mrcore.misc.FriendlyException;
 import me.mrletsplay.mrcore.misc.QuickMap;
 
 public class GUIs {
@@ -82,7 +83,8 @@ public class GUIs {
 					
 					@Override
 					public void onAction(GUIElementActionEvent e) {
-						e.getPlayer().openInventory(getAuctionRoomsGUI(e.getPlayer(), null));
+						e.getGUIHolder().setProperty(Main.pl, "owner", null);
+						e.getPlayer().openInventory(getAuctionRoomsGUIRaw(e.getPlayer(), e.getGUIHolder().getProperties()));
 						e.setCancelled(true);
 					}
 				}));
@@ -91,7 +93,8 @@ public class GUIs {
 					
 					@Override
 					public void onAction(GUIElementActionEvent e) {
-						e.getPlayer().openInventory(getAuctionRoomsGUI(e.getPlayer(), e.getPlayer().getName()));
+						e.getGUIHolder().setProperty(Main.pl, "owner", e.getPlayer().getName());
+						e.getPlayer().openInventory(getAuctionRoomsGUIRaw(e.getPlayer(), e.getGUIHolder().getProperties()));
 						e.setCancelled(true);
 					}
 				}));
@@ -168,10 +171,9 @@ public class GUIs {
 								}
 								MineBayNPCs.spawnAuctionRoomNPC(room, e.getPlayer().getLocation());
 								e.getPlayer().sendMessage(Config.getMessage("minebay.info.spawn-npc.success"));
-								// TODO
 							});
 				}else {
-					return null;
+					throw new FriendlyException("Invalid mode");
 				}
 			}
 			
@@ -201,6 +203,10 @@ public class GUIs {
 	
 	public static Inventory getAuctionRoomsSpawnNPCGUI(Player forPlayer, String owner) {
 		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("owner", owner).put("mode", "spawnnpc").makeHashMap());
+	}
+
+	public static Inventory getAuctionRoomsGUIRaw(Player forPlayer, Map<String, Object> properties) {
+		return AUCTION_ROOMS_GUI.getForPlayer(forPlayer, properties);
 	}
 	
 	public static Inventory getConfirmGUI(Player forPlayer, ItemStack baseItem, GUIElementAction confirm){
@@ -458,8 +464,9 @@ public class GUIs {
 						
 						@Override
 						public void onAction(GUIElementActionEvent e) {
-							e.getPlayer().openInventory(GUIs.getAuctionRoomsGUI(e.getPlayer(), null));
 							e.setCancelled(true);
+							if((boolean) e.getGUIHolder().getProperty(Main.pl, "disable_back_button")) return;
+							e.getPlayer().openInventory(GUIs.getAuctionRoomsGUI(e.getPlayer(), null));
 						}
 					}));
 		}else {
@@ -1018,7 +1025,11 @@ public class GUIs {
 	}
 	
 	public static Inventory getAuctionRoomGUI(Player forPlayer, int roomID, int page) {
-		return AUCTION_ROOM_GUI.getForPlayer(forPlayer, page, Main.pl, new QuickMap<String, Object>().put("room_id", roomID).makeHashMap());
+		return getAuctionRoomGUI(forPlayer, roomID, page, false);
+	}
+	
+	public static Inventory getAuctionRoomGUI(Player forPlayer, int roomID, int page, boolean disableBackButton) {
+		return AUCTION_ROOM_GUI.getForPlayer(forPlayer, page, Main.pl, new QuickMap<String, Object>().put("room_id", roomID).put("disable_back_button", disableBackButton).makeHashMap());
 	}
 	
 	public static Inventory getAuctionRoomSettingsGUI(Player forPlayer, int roomID) {

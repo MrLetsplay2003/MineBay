@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -19,8 +18,6 @@ import me.mrletsplay.minebay.economy.ReserveEconomy;
 import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
 import me.mrletsplay.minebay.economy.VaultEconomy;
 import me.mrletsplay.mrcore.misc.FriendlyException;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
 
 public class Main extends JavaPlugin{
 
@@ -126,7 +123,7 @@ public class Main extends JavaPlugin{
 								return true;
 							}
 							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
-								p.openInventory(GUIs.getAuctionRoomsGUI(p, null));
+								p.openInventory(GUIs.getAuctionRoomsGUIRaw(p, null));
 								CancelTask.cancelForPlayer(p);
 							}else{
 								p.openInventory(MineBay.getMainAuctionRoom().getMineBayInv(0, p));
@@ -232,9 +229,11 @@ public class Main extends JavaPlugin{
 							sendCommandHelp(p);
 						}
 					}else if(args[0].equalsIgnoreCase("spawnnpc")) {
-						NPC npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Auction Room #0");
-						npc.data().setPersistent("minebay_roomid", 0);
-						npc.spawn(p.getLocation());
+						if(!Config.enableNPCs) {
+							p.sendMessage(Config.getMessage("minebay.info.npcs-disabled"));
+							return true;
+						}
+						p.openInventory(GUIs.getAuctionRoomsSpawnNPCGUI(p, p.getName()));
 					}else{
 						sendCommandHelp(p);
 						return true;

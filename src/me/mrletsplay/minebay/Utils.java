@@ -26,6 +26,7 @@ public class Utils {
 			byte[] bytes = IOUtils.readAllBytes(in);
 			return Base64.getEncoder().encodeToString(bytes);
 		} catch (IOException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}

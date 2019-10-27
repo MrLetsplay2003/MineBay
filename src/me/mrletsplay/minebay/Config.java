@@ -81,7 +81,8 @@ public class Config {
 		config.addDefault("minebay.user-rooms.max-rooms", 3);
 		config.addDefault("minebay.user-rooms.default-icon-material", VersionedMaterial.GRASS_BLOCK.getCurrentMaterialDefinition().getMaterialName());
 		config.addDefault("minebay.user-rooms.custom-icon-price", 100);
-		config.addDefault("minebay.user-rooms.npc-price", 5000);
+		config.addDefault("minebay.npc.price", 5000);
+		config.addDefault("minebay.npc.skin-name", "TraderNPC");
 		List<String> perms = new ArrayList<>();
 		perms.add("user.premium");
 		perms.add("user.donator");
@@ -143,6 +144,8 @@ public class Config {
 		
 		if(prices.isEmpty()) prices.applyDefaults();
 		prices.saveToFile();
+		
+		itemPriceRestraints = prices.getComplex("items", Complex.list(MineBayItemPriceRestraints.class));
 	}
 	
 	private static BukkitCustomConfig loadMessageConfig(File f) {
@@ -211,6 +214,7 @@ public class Config {
 		cc.addDefault("minebay.info.permission-missing.buy", "%prefix% §cYou're not allowed to buy items");
 		cc.addDefault("minebay.info.permission-missing.sell", "%prefix% §cYou're not allowed to sell items");
 		cc.addDefault("minebay.info.permission-missing.create", "%prefix% §cYou're not allowed to create/edit a room");
+		cc.addDefault("minebay.info.npcs-disabled", "%prefix% §cNPCs are disabled");
 		cc.addDefault("minebay.info.spawn-npc.error.general", "%prefix% §cError: %error%");
 		cc.addDefault("minebay.info.spawn-npc.success", "%prefix% §aSpawned an auctioneer NPC");
 		
