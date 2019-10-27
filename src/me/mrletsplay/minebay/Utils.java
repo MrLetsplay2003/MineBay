@@ -1,17 +1,32 @@
 package me.mrletsplay.minebay;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class Tools {
+import me.mrletsplay.mrcore.io.IOUtils;
+
+public class Utils {
 	
 	public static void addItem(Player p, ItemStack item){
 		HashMap<Integer,ItemStack> excess = p.getInventory().addItem(item);
 		for(Map.Entry<Integer, ItemStack> me : excess.entrySet()){
 			p.getWorld().dropItem(p.getLocation(), me.getValue());
+		}
+	}
+	
+	public static String imgBase64(String url) {
+		try(InputStream in = new URL(url).openStream()) {
+			byte[] bytes = IOUtils.readAllBytes(in);
+			return Base64.getEncoder().encodeToString(bytes);
+		} catch (IOException e) {
+			return null;
 		}
 	}
 	

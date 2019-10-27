@@ -31,10 +31,22 @@ public class Config {
 			messages,
 			prices = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(pricesFile), pricesFile, true);
 	
-	public static boolean useUUIDs, allowTaxChange, enableNPCs;
+	public static boolean
+			useUUIDs,
+			allowTaxChange,
+			enableNPCs;
 	
-	public static String prefix, mbString, economy;
-	public static String openPermission, buyPermission, sellPermission, createPermission;
+	public static String
+			prefix,
+			mbString,
+			economy;
+	
+	public static String
+			openPermission,
+			buyPermission,
+			sellPermission,
+			createPermission;
+	
 	public static List<MineBayFilterItem> itemFilter;
 	public static List<MineBayItemPriceRestraints> itemPriceRestraints;
 	
@@ -69,6 +81,7 @@ public class Config {
 		config.addDefault("minebay.user-rooms.max-rooms", 3);
 		config.addDefault("minebay.user-rooms.default-icon-material", VersionedMaterial.GRASS_BLOCK.getCurrentMaterialDefinition().getMaterialName());
 		config.addDefault("minebay.user-rooms.custom-icon-price", 100);
+		config.addDefault("minebay.user-rooms.npc-price", 5000);
 		List<String> perms = new ArrayList<>();
 		perms.add("user.premium");
 		perms.add("user.donator");
@@ -128,7 +141,7 @@ public class Config {
 		
 		prices.addDefault("items", defaultRestraints);
 		
-		prices.applyDefaults();
+		if(prices.isEmpty()) prices.applyDefaults();
 		prices.saveToFile();
 	}
 	
@@ -198,6 +211,8 @@ public class Config {
 		cc.addDefault("minebay.info.permission-missing.buy", "%prefix% §cYou're not allowed to buy items");
 		cc.addDefault("minebay.info.permission-missing.sell", "%prefix% §cYou're not allowed to sell items");
 		cc.addDefault("minebay.info.permission-missing.create", "%prefix% §cYou're not allowed to create/edit a room");
+		cc.addDefault("minebay.info.spawn-npc.error.general", "%prefix% §cError: %error%");
+		cc.addDefault("minebay.info.spawn-npc.success", "%prefix% §aSpawned an auctioneer NPC");
 		
 		cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
 		cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");

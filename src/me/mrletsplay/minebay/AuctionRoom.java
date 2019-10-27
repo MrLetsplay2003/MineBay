@@ -44,7 +44,7 @@ public class AuctionRoom {
 		this.owner = roomConfig.getString("owner");
 		boolean s = false;
 		if(this.owner!=null) {
-			if(Tools.isUUID(this.owner)) {
+			if(Utils.isUUID(this.owner)) {
 				if(!Config.useUUIDs) {
 					Main.pl.getLogger().info("Converting room "+id+"'s owner uuid to name...");
 					this.owner = Bukkit.getPlayer(UUID.fromString(owner)).getName();

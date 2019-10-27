@@ -28,8 +28,8 @@ import me.mrletsplay.mrcore.bukkitimpl.gui.GUIDragDropListener;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIElementAction;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIHolder;
-import me.mrletsplay.mrcore.bukkitimpl.gui.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.gui.GUIItemSupplier;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIMultiPage;
 import me.mrletsplay.mrcore.bukkitimpl.gui.StaticGUIElement;
 import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildEvent;
 import me.mrletsplay.mrcore.bukkitimpl.gui.event.GUIBuildPageItemEvent;
@@ -106,7 +106,7 @@ public class GUIs {
 			public GUIElement toGUIElement(GUIBuildPageItemEvent<AuctionRoom> event, AuctionRoom room) {
 				String mode = (String) event.getGUIHolder().getProperty(Main.pl, "mode");
 				Player p = event.getPlayer();
-				if(mode.equals("none")) {
+				if("none".equals(mode)) {
 					return new StaticGUIElement(room.getSelectItemStack(p))
 							.setAction(new GUIElementAction() {
 								
@@ -125,7 +125,7 @@ public class GUIs {
 									e.setCancelled(true);
 								}
 							});
-				}else if(mode.equals("sell")){
+				}else if("sell".equals(mode)){
 					BigDecimal price = (BigDecimal) event.getGUIHolder().getProperty(Main.pl, "price");
 					return new StaticGUIElement(room.getSelectItemStack(p))
 							.setAction(new GUIElementAction() {
@@ -156,9 +156,20 @@ public class GUIs {
 									e.setCancelled(true);
 								}
 							});
-				}else if(mode.equals("spawnnpc")) {
-					// TODO
-					return null;
+				}else if("spawnnpc".equals(mode)) {
+					return new StaticGUIElement(room.getSelectItemStack(p))
+							.setAction(e -> {
+								e.setCancelled(true);
+								int npcPrice = Config.config.getInt("minebay.user-rooms.npc-price");
+								MineBayEconomyResponse r = Main.econ.withdrawPlayer(e.getPlayer(), npcPrice);
+								if(!r.isTransactionSuccess()) {
+									e.getPlayer().sendMessage(Config.getMessage("minebay.info.spawn-npc.error.general", "error", r.getError()));
+									return;
+								}
+								MineBayNPCs.spawnAuctionRoomNPC(room, e.getPlayer().getLocation());
+								e.getPlayer().sendMessage(Config.getMessage("minebay.info.spawn-npc.success"));
+								// TODO
+							});
 				}else {
 					return null;
 				}
@@ -345,7 +356,8 @@ public class GUIs {
 						String t = (String) holder.getProperty("minebay_type");
 						if(t == null) continue;
 						if(t.equals("auction room")) {
-							if(((int) holder.getProperty("minebay_auctionroom_id")) == r.getID()) {
+							int roomID = (int) holder.getProperty("minebay_auctionroom_id");
+							if(roomID == r.getID()) {
 								pl.closeInventory();
 							}
 						}
@@ -915,7 +927,7 @@ public class GUIs {
 						r.updateSettings();
 						MineBay.updateRoomSelection();
 						if(!Config.config.getBoolean("minebay.general.user-rooms-settings.change-icon-remove-item")){
-							Tools.addItem(e.getPlayer(), e.getItemClickedWith());
+							Utils.addItem(e.getPlayer(), e.getItemClickedWith());
 						}
 						e.getEvent().setCursor(new ItemStack(Material.AIR));
 						e.getPlayer().openInventory(getAuctionRoomSettingsGUI(e.getPlayer(), r.getID()));
