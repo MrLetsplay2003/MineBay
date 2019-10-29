@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 
 import me.mrletsplay.minebay.notifications.OfflineNotification;
 import me.mrletsplay.minebay.notifications.PlayerData;
+import me.mrletsplay.mrcore.bukkitimpl.ItemUtils;
 import net.md_5.bungee.api.ChatColor;
 
 public class Events implements Listener{
@@ -70,17 +71,21 @@ public class Events implements Listener{
 				ItemStack item = (ItemStack) objs[1];
 				Bukkit.getScheduler().runTask(Main.pl, () -> e.getPlayer().openInventory(GUIs.getAuctionRoomGUI(e.getPlayer(), roomID, 0)));
 				BigDecimal minPrice = Config.getMinimumPrice(item);
-				if(pr.compareTo(minPrice) == -1) { // pr < minPrice
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.below-min-price", "min-price", minPrice.toString()));
+				if(minPrice.compareTo(BigDecimal.ZERO) == 1 && pr.compareTo(minPrice.multiply(BigDecimal.valueOf(item.getAmount()))) == -1) { // minPrice > 0 && pr < x * minPrice
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.below-min-price", "min-price", minPrice.toString(), "total-min-price", minPrice.multiply(BigDecimal.valueOf(item.getAmount())).toString()));
+					ItemUtils.addItemOrDrop(e.getPlayer(), item);
+					e.setCancelled(true);
 					return;
 				}
 				BigDecimal maxPrice = Config.getMaximumPrice(item);
-				if(pr.compareTo(maxPrice) == 1) { // pr < minPrice
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.above-max-price", "max-price", maxPrice.toString()));
+				if(maxPrice.compareTo(BigDecimal.ZERO) == 1 && pr.compareTo(maxPrice.multiply(BigDecimal.valueOf(item.getAmount()))) == 1) { // maxPrice > 0 && pr > x * maxPrice
+					e.getPlayer().sendMessage(Config.getMessage("minebay.info.sell.error.above-max-price", "max-price", maxPrice.toString(), "total-max-price", maxPrice.multiply(BigDecimal.valueOf(item.getAmount())).toString()));
+					ItemUtils.addItemOrDrop(e.getPlayer(), item);
+					e.setCancelled(true);
 					return;
 				}
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID(roomID);
-				SellItem it = new SellItem(item, r, (Config.useUUIDs?e.getPlayer().getUniqueId().toString():e.getPlayer().getName()), pr, r.getNewItemID());
+				SellItem it = new SellItem(item, r, (Config.useUUIDs?e.getPlayer().getUniqueId().toString() : e.getPlayer().getName()), pr, r.getNewItemID());
 				r.addSellItem(it);
 				e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, r));
 			}catch(NumberFormatException ex){

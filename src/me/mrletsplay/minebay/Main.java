@@ -123,7 +123,7 @@ public class Main extends JavaPlugin{
 								return true;
 							}
 							if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
-								p.openInventory(GUIs.getAuctionRoomsGUIRaw(p, null));
+								p.openInventory(GUIs.getAuctionRoomsGUI(p, null));
 								CancelTask.cancelForPlayer(p);
 							}else{
 								p.openInventory(MineBay.getMainAuctionRoom().getMineBayInv(0, p));
@@ -153,27 +153,42 @@ public class Main extends JavaPlugin{
 								return true;
 							}
 							try{
-								BigDecimal price = new BigDecimal(args[1]);
-								if(price.compareTo(new BigDecimal("0")) == 1){ // > 0
-									if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
+								if(p.getItemInHand()!=null && !p.getItemInHand().getType().equals(Material.AIR)){
+									ItemStack item = p.getItemInHand();
+									BigDecimal price = new BigDecimal(args[1]);
+									BigDecimal minPrice = Config.getMinimumPrice(item);
+									if(minPrice.compareTo(BigDecimal.ZERO) == 1 && price.compareTo(minPrice.multiply(BigDecimal.valueOf(item.getAmount()))) == -1) { // minPrice > 0 && pr < x * minPrice
+										p.sendMessage(Config.getMessage("minebay.info.sell.error.below-min-price", "min-price", minPrice.toString(), "total-min-price", minPrice.multiply(BigDecimal.valueOf(item.getAmount())).toString()));
+										return true;
+									}
+									BigDecimal maxPrice = Config.getMaximumPrice(item);
+									if(maxPrice.compareTo(BigDecimal.ZERO) == 1 && price.compareTo(maxPrice.multiply(BigDecimal.valueOf(item.getAmount()))) == 1) { // maxPrice > 0 && pr > x * maxPrice
+										p.sendMessage(Config.getMessage("minebay.info.sell.error.above-max-price", "max-price", maxPrice.toString(), "total-max-price", maxPrice.multiply(BigDecimal.valueOf(item.getAmount())).toString()));
+										return true;
+									}
+									if(price.compareTo(new BigDecimal("0")) == 1){ // > 0
 										if(Config.config.getBoolean("minebay.general.enable-user-rooms")){
 											CancelTask.cancelForPlayer(p);
 											p.openInventory(GUIs.getAuctionRoomsSellGUI(p, null, price));
 										}else{
 											CancelTask.cancelForPlayer(p);
 											AuctionRoom main = MineBay.getMainAuctionRoom();
-											SellItem it = new SellItem(p.getItemInHand(), main, (Config.useUUIDs?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
-											main.addSellItem(it);
-											p.setItemInHand(new ItemStack(Material.AIR));
-											p.sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, main));
+											if(main.getSoldItemsBySeller(p).size() < Config.config.getInt("minebay.user-rooms.offers-per-slot")){
+												SellItem it = new SellItem(item, main, (Config.useUUIDs?p.getUniqueId().toString():p.getName()), price, main.getNewItemID());
+												main.addSellItem(it);
+												p.setItemInHand(new ItemStack(Material.AIR));
+												p.sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.sell.success"), it, main));
+											}else {
+												p.sendMessage(Config.getMessage("minebay.info.sell.error.too-many-sold"));
+											}
 										}
 										return true;
 									}else{
-										p.sendMessage(Config.getMessage("minebay.info.sell.error.noitem"));
-										return true;
+										p.sendMessage(Config.getMessage("minebay.info.sell.error.toocheap"));
 									}
 								}else{
-									p.sendMessage(Config.getMessage("minebay.info.sell.error.toocheap"));
+									p.sendMessage(Config.getMessage("minebay.info.sell.error.noitem"));
+									return true;
 								}
 							}catch(NumberFormatException e){
 								sendCommandHelp(p);

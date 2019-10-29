@@ -50,7 +50,7 @@
 		</repository>
 		<repository>
 			<id>Graphite-Official</id>
-			<url>http://graphite-official.com/repo-snapshot/</url>
+			<url>http://graphite-official.com/repo/</url>
 		</repository>
 		<repository>
 			<id>Citizens</id>
@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>MrCore</groupId>
 			<artifactId>MrCore</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<!--Spigot API -->

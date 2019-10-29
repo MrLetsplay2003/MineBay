@@ -34,7 +34,8 @@ public class Config {
 	public static boolean
 			useUUIDs,
 			allowTaxChange,
-			enableNPCs;
+			enableNPCs,
+			enableTransactionLog;
 	
 	public static String
 			prefix,
@@ -100,6 +101,7 @@ public class Config {
 		
 		useUUIDs = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
 		enableNPCs = config.getBoolean("minebay.general.enable-npcs", false, true);
+		enableTransactionLog = config.getBoolean("minebay.general.enable-transaction-log", false, true);
 		prefix = config.getString("minebay.prefix", "§8[§6Mine§bBay§8]", true);
 		mbString = config.getString("minebay.mbstring", "§6Mine§bBay", true);
 		economy = config.getString("minebay.general.economy", "Vault", true);
@@ -120,10 +122,12 @@ public class Config {
 				), true);
 		
 		prices.registerMapper(MineBayItemPriceRestraints.MAPPER);
+		prices.registerMapper(MineBayFilterItem.MAPPER);
 		prices.setHeader(
 				" You can define minimum and maximum prices for different items here\n" +
 				" \"-1\" for min or max price is equivalent to no limit");
 		prices.setComment("type", " Type names are Bukkit material names (refer to https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html)");
+		prices.setComment("item", " Valid values for 'ignored-parameters' can be found at https://github.com/MrLetsplay2003/MrCore/blob/2.0/src/me/mrletsplay/mrcore/bukkitimpl/ItemUtils.java#L338");
 		
 		for(Material m : Material.values()) {
 			if(m.name().startsWith("LEGACY_")) continue; // Skip legacy Materials (1.13+)
@@ -160,8 +164,8 @@ public class Config {
 		cc.addDefault("minebay.info.sell.error.invalid-price", "%prefix% §aType in another price");
 		cc.addDefault("minebay.info.sell.error.noitem", "%prefix% §cYou need to hold an item in your hand");
 		cc.addDefault("minebay.info.sell.error.toocheap", "%prefix% §cYou need to set a price higher than 0");
-		cc.addDefault("minebay.info.sell.error.below-min-price", "%prefix% §cPrice is below the set miminum price of %min-price%");
-		cc.addDefault("minebay.info.sell.error.above-max-price", "%prefix% §cPrice is above the set maximum price of %max-price%");
+		cc.addDefault("minebay.info.sell.error.below-min-price", "%prefix% §cPrice is below the set miminum price of §6%min-price% %currency%/item §c(Total max: §6%total-min-price% %currency%§c)");
+		cc.addDefault("minebay.info.sell.error.above-max-price", "%prefix% §cPrice is above the set maximum price of §6%max-price% %currency%/item §c(Total max: §6%total-max-price% %currency%§c)");
 		cc.addDefault("minebay.info.sell.error.no-slots", "%prefix% §cAll slots are already occupied");
 		cc.addDefault("minebay.info.sell.error.too-many-sold", "%prefix% §cYou have already sold too many items in that room");
 		cc.addDefault("minebay.info.sell.error.missing-access", "%prefix% §cYou're not allowed to sell items in this room");

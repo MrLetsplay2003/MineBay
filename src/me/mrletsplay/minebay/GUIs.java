@@ -432,6 +432,7 @@ public class GUIs {
 				r.removeSellItem(sellIt.getID());
 				r.updateMineBay();
 				ItemUtils.addItemOrDrop(e.getPlayer(), sellIt.getItem());
+				if(Config.enableTransactionLog) MineBayTransactionLogger.logTransaction(seller, e.getPlayer(), r, sellIt.getPrice(), sellIt.getItem());
 				e.getPlayer().closeInventory();
 				if(seller.isOnline()){
 					((Player)seller).sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.seller.success"), sellIt, r).replace("%buyer%", e.getPlayer().getName()).replace("%price2%", ""+sellerAm));
@@ -457,10 +458,17 @@ public class GUIs {
 		builder.addPreviousPageItem(52, ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.previous-page")));
 		builder.addNextPageItem(53, ItemUtils.createItem(ItemUtils.arrowRight(VersionedDyeColor.WHITE), Config.getMessage("minebay.gui.misc.next-page")));
 		
-		GUIElement gPane = new StaticGUIElement(ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0"));
+		ItemStack gPaneItem = ItemUtils.createItem(VersionedMaterial.BLACK_STAINED_GLASS_PANE, 1, "§0");
+		GUIElement gPane = new StaticGUIElement(gPaneItem);
 		if(Config.config.getBoolean("minebay.general.enable-user-rooms")) {
-			builder.addElement(45, new StaticGUIElement(ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back")))
-					.setAction(new GUIElementAction() {
+			builder.addElement(45, new GUIElement() {
+				
+				@Override
+				public ItemStack getItem(GUIBuildEvent event) {
+					if((boolean) event.getGUIHolder().getProperty(Main.pl, "disable_back_button")) return gPaneItem;
+					return ItemUtils.createItem(ItemUtils.arrowLeft(VersionedDyeColor.ORANGE), Config.getMessage("minebay.gui.misc.back"));
+				}
+			}.setAction(new GUIElementAction() {
 						
 						@Override
 						public void onAction(GUIElementActionEvent e) {

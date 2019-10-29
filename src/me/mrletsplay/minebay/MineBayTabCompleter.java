@@ -26,6 +26,10 @@ public class MineBayTabCompleter implements TabCompleter{
 					tabCompletions.add("create");
 				}
 				
+				if(Config.enableNPCs && "spawnnpc".startsWith(args[0])) {
+					tabCompletions.add("spawnnpc");
+				}
+				
 				if(sender.hasPermission("minebay.reload") && "reload".startsWith(args[0])){
 					tabCompletions.add("reload");
 				}
