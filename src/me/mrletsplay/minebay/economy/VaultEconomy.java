@@ -1,5 +1,7 @@
 package me.mrletsplay.minebay.economy;
 
+import java.math.BigDecimal;
+
 import org.bukkit.OfflinePlayer;
 
 import net.milkbowl.vault.economy.Economy;
@@ -14,13 +16,13 @@ public class VaultEconomy implements MineBayEconomy {
 	}
 	
 	@Override
-	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-		return new VaultEconomyResponse(vaultEcon.depositPlayer(player, amount));
+	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, BigDecimal amount) {
+		return new VaultEconomyResponse(vaultEcon.depositPlayer(player, amount.doubleValue()));
 	}
 
 	@Override
-	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-		return new VaultEconomyResponse(vaultEcon.withdrawPlayer(player, amount));
+	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, BigDecimal amount) {
+		return new VaultEconomyResponse(vaultEcon.withdrawPlayer(player, amount.doubleValue()));
 	}
 
 	@Override

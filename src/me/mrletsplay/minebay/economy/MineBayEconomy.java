@@ -1,12 +1,14 @@
 package me.mrletsplay.minebay.economy;
 
+import java.math.BigDecimal;
+
 import org.bukkit.OfflinePlayer;
 
 public interface MineBayEconomy {
 
-	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount);
+	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, BigDecimal amount);
 
-	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount);
+	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, BigDecimal amount);
 	
 	public String getCurrencyNameSingular();
 	

@@ -10,21 +10,21 @@ import net.tnemc.core.Reserve;
 public class ReserveEconomy implements MineBayEconomy {
 
 	@Override
-	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-		Reserve.instance().economy().addHoldings(player.getUniqueId(), new BigDecimal(amount));
+	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, BigDecimal amount) {
+		Reserve.instance().economy().addHoldings(player.getUniqueId(), amount);
 		return new ReserveEconomyResponse(true, null);
 	}
 
 	@Override
-	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-		if(!Reserve.instance().economy().canRemoveHoldings(player.getUniqueId(), new BigDecimal(amount)))
+	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, BigDecimal amount) {
+		if(!Reserve.instance().economy().canRemoveHoldings(player.getUniqueId(), amount))
 			return new ReserveEconomyResponse(false,
 					Config.getMessage("minebay.economy.reserve.insufficient-funds",
 							"needed-balance", ""+amount,
 							"current-balance", Reserve.instance().economy().getHoldings(player.getUniqueId()).toString(),
 							"currency-name-singular", Reserve.instance().economy().currencyDefaultSingular(),
 							"currency-name-plural", Reserve.instance().economy().currencyDefaultPlural()));
-		Reserve.instance().economy().removeHoldings(player.getUniqueId(), new BigDecimal(amount));
+		Reserve.instance().economy().removeHoldings(player.getUniqueId(), amount);
 		return new ReserveEconomyResponse(true, null);
 	}
 

@@ -1,6 +1,7 @@
 package me.mrletsplay.minebay;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -164,7 +165,7 @@ public class GUIs {
 							.setAction(e -> {
 								e.setCancelled(true);
 								int npcPrice = Config.config.getInt("minebay.user-rooms.npc-price");
-								MineBayEconomyResponse r = Main.econ.withdrawPlayer(e.getPlayer(), npcPrice);
+								MineBayEconomyResponse r = Main.econ.withdrawPlayer(e.getPlayer(), new BigDecimal(npcPrice));
 								if(!r.isTransactionSuccess()) {
 									e.getPlayer().sendMessage(Config.getMessage("minebay.info.spawn-npc.error.general", "error", r.getError()));
 									return;
@@ -263,7 +264,7 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.room-price"));
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), new BigDecimal(Config.config.getInt("minebay.user-rooms.room-price")));
 				if(re.isTransactionSuccess()){
 					CancelTask.cancelForPlayer(e.getPlayer());
 					AuctionRoom r = AuctionRooms.createAuctionRoom(e.getPlayer(), AuctionRooms.getNewRoomID(), false);
@@ -290,7 +291,7 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-price")*amount);
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), new BigDecimal(Config.config.getInt("minebay.user-rooms.slot-price") * amount));
 				if(re.isTransactionSuccess()){
 					r.setSlots(r.getSlots()+amount);
 					r.saveAllSettings();
@@ -320,7 +321,7 @@ public class GUIs {
 			
 			@Override
 			public void onAction(GUIElementActionEvent e) {
-				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), Config.config.getInt("minebay.user-rooms.slot-sell-price")*amount);
+				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), new BigDecimal(Config.config.getInt("minebay.user-rooms.slot-sell-price") * amount));
 				if(re.isTransactionSuccess()){
 					r.setSlots(r.getSlots()-amount);
 					r.saveAllSettings();
@@ -350,7 +351,7 @@ public class GUIs {
 			@Override
 			public void onAction(GUIElementActionEvent e) {
 				int worth = r.getWorth();
-				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), worth);
+				MineBayEconomyResponse re = Main.econ.depositPlayer(e.getPlayer(), new BigDecimal(worth));
 				if(re.isTransactionSuccess()){
 					AuctionRooms.deleteAuctionRoom(r.getID());
 					for(Player pl : Bukkit.getOnlinePlayers()){
@@ -387,7 +388,7 @@ public class GUIs {
 			public void onAction(GUIElementActionEvent e) {
 				e.setCancelled(true);
 				AuctionRoom r = sellIt.getRoom();
-				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice().doubleValue());
+				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice());
 				
 				if(!re.isTransactionSuccess()) {
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
@@ -408,12 +409,12 @@ public class GUIs {
 						owner = Bukkit.getOfflinePlayer(r.getOwner());
 					}
 				}
-				double sellerAm = round((double)((100-r.getTaxshare())*0.01)*sellIt.getPrice().doubleValue(),5);
-				double ownerAm = round((double)(r.getTaxshare()*0.01)*sellIt.getPrice().doubleValue(),5);
+				BigDecimal sellerAm = sellIt.getPrice().multiply(new BigDecimal((100 - r.getTaxshare()) * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
+				BigDecimal ownerAm = sellIt.getPrice().multiply(new BigDecimal(r.getTaxshare() * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
 				MineBayEconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
 				
 				if(!r2.isTransactionSuccess()) {
-					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice().doubleValue()); // Refund money
+					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r2.getError()));
 					return;
 				}
@@ -422,7 +423,7 @@ public class GUIs {
 				if(owner!=null) r3 = Main.econ.depositPlayer(owner, ownerAm);
 				
 				if(r3 != null && !r3.isTransactionSuccess()) {
-					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice().doubleValue()); // Refund money
+					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
 					Main.econ.withdrawPlayer(owner, ownerAm); // Revoke money
 					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r3.getError()));
 					return;
@@ -444,11 +445,6 @@ public class GUIs {
 		});
 //		base.getBuilder().addElement(1, new StaticGUIElement(sellIt.getConfirmItemStack()));
 		return base;
-	}
-	
-	private static double round (double value, int precision) {
-	    int scale = (int) Math.pow(10, precision);
-	    return (double) Math.round(value * scale) / scale;
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -935,7 +931,7 @@ public class GUIs {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
 				if(e.getItemClickedWith() != null && !e.getItemClickedWith().getType().equals(Material.AIR)) {
 					int price = r.isDefaultRoom()?0:Config.config.getInt("minebay.user-rooms.custom-icon-price");
-					MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), price);
+					MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), new BigDecimal(price));
 					if(re.isTransactionSuccess()){
 						r.setIcon(e.getItemClickedWith());
 						r.saveAllSettings();

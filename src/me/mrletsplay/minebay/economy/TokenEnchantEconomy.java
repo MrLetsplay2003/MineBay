@@ -1,5 +1,7 @@
 package me.mrletsplay.minebay.economy;
 
+import java.math.BigDecimal;
+
 import org.bukkit.OfflinePlayer;
 
 import com.vk2gpz.tokenenchant.api.TokenEnchantAPI;
@@ -15,19 +17,19 @@ public class TokenEnchantEconomy implements MineBayEconomy {
 	}
 
 	@Override
-	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, double amount) {
-		tapi.addTokens(player, amount);
+	public MineBayEconomyResponse depositPlayer(OfflinePlayer player, BigDecimal amount) {
+		tapi.addTokens(player, amount.doubleValue());
 		return new TokenEnchantEconomyResponse(true, null);
 	}
 
 	@Override
-	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-		if(tapi.getTokens(player) < amount)
+	public MineBayEconomyResponse withdrawPlayer(OfflinePlayer player, BigDecimal amount) {
+		if(tapi.getTokens(player) < amount.doubleValue())
 			return new TokenEnchantEconomyResponse(false,
 					Config.getMessage("minebay.economy.tokenenchant.insufficient-funds",
 							"needed-balance", ""+amount,
 							"current-balance", tapi.getTokensInString(player)));
-		tapi.removeTokens(player, amount);
+		tapi.removeTokens(player, amount.doubleValue());
 		return new TokenEnchantEconomyResponse(true, null);
 	}
 
