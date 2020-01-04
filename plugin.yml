@@ -1,9 +1,9 @@
-main: me.mrletsplay.minebay.Main
-name: MineBay
-version: "4.0"
-author: MrLetsplay2003
-softdepend: [MrCore_BukkitImpl, Vault, TokenEnchant, Reserve, Citizens]
-api-version: 1.13
+main: "me.mrletsplay.minebay.Main"
+name: "MineBay"
+version: "4.1"
+author: "MrLetsplay2003"
+softdepend: ["MrCore_BukkitImpl", "Vault", "TokenEnchant", "Reserve", "Citizens"]
+api-version: "1.13"
 
 commands:
   minebay:
