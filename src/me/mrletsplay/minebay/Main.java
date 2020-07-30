@@ -17,7 +17,6 @@ import me.mrletsplay.minebay.economy.MineBayEconomy;
 import me.mrletsplay.minebay.economy.ReserveEconomy;
 import me.mrletsplay.minebay.economy.TokenEnchantEconomy;
 import me.mrletsplay.minebay.economy.VaultEconomy;
-import me.mrletsplay.mrcore.misc.FriendlyException;
 
 public class Main extends JavaPlugin{
 
@@ -50,7 +49,7 @@ public class Main extends JavaPlugin{
 		}
 		
 		if(Config.enableNPCs) {
-			if(!Bukkit.getPluginManager().isPluginEnabled("Citizens")) throw new FriendlyException("Citizens is required in order for NPCs to function");
+			if(!Bukkit.getPluginManager().isPluginEnabled("Citizens")) throw new RuntimeException("Citizens is required in order for NPCs to function");
 			MineBayNPCs.init();
 		}
 		
@@ -85,18 +84,18 @@ public class Main extends JavaPlugin{
 		getLogger().info("Using " + economy + " economy");
 		switch(economy.toLowerCase()) {
 			case "tokenenchant":
-				if(!Bukkit.getPluginManager().isPluginEnabled("TokenEnchant")) throw new FriendlyException("TokenEnchant economy is selected, but TokenEnchant is not present");
+				if(!Bukkit.getPluginManager().isPluginEnabled("TokenEnchant")) throw new RuntimeException("TokenEnchant economy is selected, but TokenEnchant is not present");
 				econ = new TokenEnchantEconomy();
 				return true;
 			case "vault":
-				if(!Bukkit.getPluginManager().isPluginEnabled("Vault")) throw new FriendlyException("Vault economy is selected, but Vault is not present");
+				if(!Bukkit.getPluginManager().isPluginEnabled("Vault")) throw new RuntimeException("Vault economy is selected, but Vault is not present");
 				RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				if (economyProvider != null) {
 					econ = new VaultEconomy(economyProvider.getProvider());
 				}
 				return (econ != null);
 			case "reserve":
-				if(!Bukkit.getPluginManager().isPluginEnabled("Reserve")) throw new FriendlyException("Reserve economy is selected, but Reserve is not present");
+				if(!Bukkit.getPluginManager().isPluginEnabled("Reserve")) throw new RuntimeException("Reserve economy is selected, but Reserve is not present");
 				econ = new ReserveEconomy();
 				return true;
 			default:
