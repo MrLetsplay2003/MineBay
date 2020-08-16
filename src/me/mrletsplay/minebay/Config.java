@@ -81,6 +81,7 @@ public class Config {
 		config.addDefault("minebay.user-rooms.max-name-length", 20);
 		config.addDefault("minebay.user-rooms.max-rooms", 3);
 		config.addDefault("minebay.user-rooms.default-icon-material", VersionedMaterial.GRASS_BLOCK.getCurrentMaterialDefinition().getMaterialName());
+		config.addDefault("minebay.user-rooms.default-name", "%player%'s Auction Room");
 		config.addDefault("minebay.user-rooms.custom-icon-price", 100);
 		config.addDefault("minebay.npc.price", 5000);
 		config.addDefault("minebay.npc.skin-name", "TraderNPC");

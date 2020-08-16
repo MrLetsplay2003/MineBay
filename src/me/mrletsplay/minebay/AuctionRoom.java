@@ -76,7 +76,7 @@ public class AuctionRoom {
 		this.isDefaultRoom = isDefaultRoom;
 		this.isPrivateRoom = false;
 		if(owner!=null){
-			this.name = getOwnerName()+"'s Auction Room";
+			this.name = Config.config.getString("minebay.user-rooms.default-name").replace("%player%", getOwnerName());
 		}else{
 			this.name = "Default Auction Room";
 		}
