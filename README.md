@@ -1,2 +1,2 @@
 # MineBay
-# Up to date! (v3.1)
+This repo always contains the latest version of MineBay
