@@ -10,6 +10,7 @@ import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.npc.skin.SkinnableEntity;
+import net.citizensnpcs.trait.SkinTrait;
 
 public class MineBayNPCs {
 
@@ -24,7 +25,7 @@ public class MineBayNPCs {
 		npc.spawn(location);
 		
 		SkinnableEntity en = (SkinnableEntity) npc.getEntity();
-		en.setSkinName(Config.config.getString("minebay.npc.skin-name"));
+		en.getNPC().getTrait(SkinTrait.class).setSkinName(Config.config.getString("minebay.npc.skin-name"));
 		en.getSkinTracker().notifySkinChange(true);
 	}
 	
