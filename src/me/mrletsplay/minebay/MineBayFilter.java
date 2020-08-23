@@ -36,6 +36,7 @@ public class MineBayFilter {
 				public UIElement toUIElement(UIBuildPageItemEvent<MineBayFilterItem> event, MineBayFilterItem it) {
 					return new UIElement() {
 						
+						@SuppressWarnings("deprecation")
 						@Override
 						public BaseComponent[] getLayout(UIBuildEvent e) {
 							ItemStack item = it.getItem();
