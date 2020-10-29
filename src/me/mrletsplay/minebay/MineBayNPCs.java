@@ -25,7 +25,7 @@ public class MineBayNPCs {
 		npc.spawn(location);
 		
 		SkinnableEntity en = (SkinnableEntity) npc.getEntity();
-		en.getNPC().getTrait(SkinTrait.class).setSkinName(Config.config.getString("minebay.npc.skin-name"));
+		en.getNPC().getOrAddTrait(SkinTrait.class).setSkinName(Config.config.getString("minebay.npc.skin-name"));
 		en.getSkinTracker().notifySkinChange(true);
 	}
 	
