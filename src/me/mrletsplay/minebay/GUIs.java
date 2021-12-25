@@ -214,6 +214,10 @@ public class GUIs {
 		return CONFIRM_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("base_item", baseItem).put("confirm_action", confirm).makeHashMap());
 	}
 	
+	public static Inventory getPurchaseConfirmGUI(Player forPlayer, SellItem sellItem, GUIElementAction confirm){
+		return CONFIRM_GUI.getForPlayer(forPlayer, Main.pl, new QuickMap<String, Object>().put("base_item", sellItem.getItem()).put("confirm_action", confirm).put("sell_item", sellItem).makeHashMap());
+	}
+	
 	private static GUI buildConfirmGUI() {
 		GUIBuilder builder = new GUIBuilder(Config.prefix, 3);
 
@@ -381,66 +385,61 @@ public class GUIs {
 	}
 	
 	public static Inventory purchaseItemGUI(Player forPlayer, SellItem sellIt) {
-		Inventory base = getConfirmGUI(forPlayer, sellIt.getItem(), new GUIElementAction() {
+		Inventory base = getPurchaseConfirmGUI(forPlayer, sellIt, e -> {
+			e.setCancelled(true);
+			AuctionRoom r = sellIt.getRoom();
+			MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice());
 			
-			@SuppressWarnings("deprecation")
-			@Override
-			public void onAction(GUIElementActionEvent e) {
-				e.setCancelled(true);
-				AuctionRoom r = sellIt.getRoom();
-				MineBayEconomyResponse re = Main.econ.withdrawPlayer(e.getPlayer(), sellIt.getPrice());
-				
-				if(!re.isTransactionSuccess()) {
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
-					return;
-				}
-				
-				OfflinePlayer seller;
+			if(!re.isTransactionSuccess()) {
+				e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", re.getError()));
+				return;
+			}
+			
+			OfflinePlayer seller;
+			if(Config.useUUIDs) {
+				seller = Bukkit.getOfflinePlayer(UUID.fromString(sellIt.getSeller()));
+			}else{
+				seller = Bukkit.getOfflinePlayer(sellIt.getSeller());
+			}
+			OfflinePlayer owner = null;
+			if(r.getOwner()!=null){
 				if(Config.useUUIDs) {
-					seller = Bukkit.getOfflinePlayer(UUID.fromString(sellIt.getSeller()));
-				}else{
-					seller = Bukkit.getOfflinePlayer(sellIt.getSeller());
+					owner = Bukkit.getOfflinePlayer(UUID.fromString(r.getOwner()));
+				}else {
+					owner = Bukkit.getOfflinePlayer(r.getOwner());
 				}
-				OfflinePlayer owner = null;
-				if(r.getOwner()!=null){
-					if(Config.useUUIDs) {
-						owner = Bukkit.getOfflinePlayer(UUID.fromString(r.getOwner()));
-					}else {
-						owner = Bukkit.getOfflinePlayer(r.getOwner());
-					}
-				}
-				BigDecimal sellerAm = sellIt.getPrice().multiply(new BigDecimal((100 - r.getTaxshare()) * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
-				BigDecimal ownerAm = sellIt.getPrice().multiply(new BigDecimal(r.getTaxshare() * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
-				MineBayEconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
-				
-				if(!r2.isTransactionSuccess()) {
-					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r2.getError()));
-					return;
-				}
-				
-				MineBayEconomyResponse r3 = null;
-				if(owner!=null) r3 = Main.econ.depositPlayer(owner, ownerAm);
-				
-				if(r3 != null && !r3.isTransactionSuccess()) {
-					Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
-					Main.econ.withdrawPlayer(owner, ownerAm); // Revoke money
-					e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r3.getError()));
-					return;
-				}
-				
-				e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.success"), sellIt, r));
-				r.removeSellItem(sellIt.getID());
-				r.updateMineBay();
-				ItemUtils.addItemOrDrop(e.getPlayer(), sellIt.getItem());
-				if(Config.enableTransactionLog) MineBayTransactionLogger.logTransaction(seller, e.getPlayer(), r, sellIt.getPrice(), sellIt.getItem());
-				e.getPlayer().closeInventory();
-				if(seller.isOnline()){
-					((Player)seller).sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.seller.success"), sellIt, r).replace("%buyer%", e.getPlayer().getName()).replace("%price2%", ""+sellerAm));
-				}
-				if(owner!=null && owner.isOnline() && r.getTaxshare() > 0){
-					((Player) owner).sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.room-owner.success"), sellIt, r).replace("%buyer%", e.getPlayer().getName()).replace("%price2%", ""+ownerAm));
-				}
+			}
+			BigDecimal sellerAm = sellIt.getPrice().multiply(new BigDecimal((100 - r.getTaxshare()) * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
+			BigDecimal ownerAm = sellIt.getPrice().multiply(new BigDecimal(r.getTaxshare() * 0.01D)).setScale(2, RoundingMode.HALF_DOWN);
+			MineBayEconomyResponse r2 = Main.econ.depositPlayer(seller, sellerAm);
+			
+			if(!r2.isTransactionSuccess()) {
+				Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
+				e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r2.getError()));
+				return;
+			}
+			
+			MineBayEconomyResponse r3 = null;
+			if(owner!=null) r3 = Main.econ.depositPlayer(owner, ownerAm);
+			
+			if(r3 != null && !r3.isTransactionSuccess()) {
+				Main.econ.depositPlayer(e.getPlayer(), sellIt.getPrice()); // Refund money
+				Main.econ.withdrawPlayer(owner, ownerAm); // Revoke money
+				e.getPlayer().sendMessage(Config.getMessage("minebay.info.purchase.error", "error", r3.getError()));
+				return;
+			}
+			
+			e.getPlayer().sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.success"), sellIt, r));
+			r.removeSellItem(sellIt.getID());
+			r.updateMineBay();
+			ItemUtils.addItemOrDrop(e.getPlayer(), sellIt.getItem());
+			if(Config.enableTransactionLog) MineBayTransactionLogger.logTransaction(seller, e.getPlayer(), r, sellIt.getPrice(), sellIt.getItem());
+			e.getPlayer().closeInventory();
+			if(seller.isOnline()){
+				((Player)seller).sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.seller.success"), sellIt, r).replace("%buyer%", e.getPlayer().getName()).replace("%price2%", ""+sellerAm));
+			}
+			if(owner!=null && owner.isOnline() && r.getTaxshare() > 0){
+				((Player) owner).sendMessage(Config.replaceForSellItem(Config.getMessage("minebay.info.purchase.room-owner.success"), sellIt, r).replace("%buyer%", e.getPlayer().getName()).replace("%price2%", ""+ownerAm));
 			}
 		});
 //		base.getBuilder().addElement(1, new StaticGUIElement(sellIt.getConfirmItemStack()));
@@ -956,6 +955,12 @@ public class GUIs {
 			@Override
 			public void onDragDrop(GUIDragDropEvent e) {
 				e.setCancelled(false);
+			}
+		});
+		
+		builder.setPutItemListener(event -> {
+			if(event.getSlot() == 4) {
+				
 			}
 		});
 		

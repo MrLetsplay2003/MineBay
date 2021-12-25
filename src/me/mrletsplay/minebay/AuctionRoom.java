@@ -20,6 +20,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.google.common.io.Files;
 
 import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUI;
+import me.mrletsplay.mrcore.bukkitimpl.gui.GUIHolder;
 import me.mrletsplay.mrcore.config.ConfigLoader;
 import me.mrletsplay.mrcore.misc.StringUtils;
 
@@ -212,6 +214,7 @@ public class AuctionRoom {
 			ids.remove((Integer)id);
 			roomConfig.set("sold-items.ids", ids);
 			roomConfig.unset("sold-items.item."+id);
+			closePurchaseGUIs(roomID, id);
 			saveRoomConfig();
 		}
 		updateMineBay();
@@ -276,6 +279,16 @@ public class AuctionRoom {
 	
 	public void updateMineBay(){
 		GUIs.AUCTION_ROOM_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
+	}
+	
+	public void closePurchaseGUIs(int roomID, int sellItemID) {
+		GUIs.CONFIRM_GUI.getAllOpenInstances().forEach(p -> {
+			GUIHolder holder = GUI.getGUIHolder(p.getOpenInventory().getTopInventory());
+			SellItem it = (SellItem) holder.getProperty(Main.pl, "sell_item");
+			if(it != null
+					&& it.getRoom().getID() == roomID
+					&& it.getID() == sellItemID) p.closeInventory();
+		});
 	}
 	
 	public void updateSettings(){

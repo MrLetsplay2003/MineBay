@@ -71,7 +71,6 @@ public class Main extends JavaPlugin{
 			UpdateChecker.checkForUpdate(pls.toArray(new Player[pls.size()]));
 			getLogger().info("Finished!");
 		}
-		new Metrics(this);
 	}
 	
 	@Override

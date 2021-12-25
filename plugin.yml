@@ -1,6 +1,6 @@
 main: "me.mrletsplay.minebay.Main"
 name: "MineBay"
-version: "4.2.2"
+version: "${project.version}"
 author: "MrLetsplay2003"
 softdepend: ["MrCore_BukkitImpl", "Vault", "TokenEnchant", "Reserve", "Citizens"]
 api-version: "1.13"
