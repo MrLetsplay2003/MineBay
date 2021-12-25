@@ -958,12 +958,6 @@ public class GUIs {
 			}
 		});
 		
-		builder.setPutItemListener(event -> {
-			if(event.getSlot() == 4) {
-				
-			}
-		});
-		
 		return builder.create();
 	}
 	
