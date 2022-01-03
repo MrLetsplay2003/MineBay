@@ -188,6 +188,9 @@ public class GUIs {
 			}
 		});
 		
+		// TODO: bypasses a bug in MrCore
+		builder.setDragDropListener(event -> event.setCancelled(true));
+		
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("minebay_type", "auction rooms");
 		builder.setDefaultProperties(props);
@@ -1023,6 +1026,9 @@ public class GUIs {
 		});
 		
 		builder.addPageSlotsInRange(0, 26);
+		
+		// TODO: bypasses a bug in MrCore
+		builder.setDragDropListener(event -> event.setCancelled(true));
 		
 		return builder.create();
 	}
