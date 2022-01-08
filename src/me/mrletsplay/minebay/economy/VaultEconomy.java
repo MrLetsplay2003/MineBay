@@ -50,7 +50,7 @@ public class VaultEconomy implements MineBayEconomy {
 
 		@Override
 		public String getError() {
-			return vaultResponse.errorMessage == null ? "Unknown error" : null;
+			return vaultResponse.errorMessage == null ? "Unknown error" : vaultResponse.errorMessage;
 		}
 		
 	}
