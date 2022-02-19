@@ -65,8 +65,8 @@ public class Config {
 		config.addDefault("minebay.general.update-check-on-command", true);
 		config.addDefault("minebay.general.user-rooms-settings.change-icon-remove-item", true);
 		List<String> aliases = new ArrayList<>();
-		aliases.add("/market");
-		aliases.add("/mb");
+		aliases.add("market");
+		aliases.add("mb");
 		config.addDefault("minebay.general.command-aliases", aliases);
 		config.addDefault("minebay.general.max-default-room-sales", 5);
 		config.addDefault("minebay.user-rooms.room-price", 1000);

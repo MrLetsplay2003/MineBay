@@ -10,7 +10,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -130,18 +129,6 @@ public class Events implements Listener{
 		if(!offn.isEmpty()) {
 			PlayerData.resetOfflineNotifications(e.getPlayer());
 			offn.forEach(n -> n.send(e.getPlayer()));
-		}
-	}
-	
-	@EventHandler
-	public void onCMD(PlayerCommandPreprocessEvent e) {
-		String[] spl = e.getMessage().split(" ");
-		for(String a : Config.config.getStringList("minebay.general.command-aliases")) {
-			if(spl[0].equalsIgnoreCase(a)) {
-				e.getPlayer().chat("/minebay"+e.getMessage().substring(a.length()));
-				e.setCancelled(true);
-				return;
-			}
 		}
 	}
 	
