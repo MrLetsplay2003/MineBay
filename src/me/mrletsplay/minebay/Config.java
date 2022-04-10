@@ -93,10 +93,12 @@ public class Config {
 		config.addDefault("room-perm.user.premium.allow-colored-names", false);
 		config.addDefault("room-perm.user.premium.allow-colored-descriptions", true);
 		config.addDefault("room-perm.user.premium.max-default-room-sales", 10);
+		config.addDefault("room-perm.user.premium.max-slots", 60);
 		config.addDefault("room-perm.user.donator.max-rooms", 7);
 		config.addDefault("room-perm.user.donator.allow-colored-names", true);
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
 		config.addDefault("room-perm.user.donator.max-default-room-sales", 15);
+		config.addDefault("room-perm.user.donator.max-slots", 70);
 		
 		config.applyDefaults();
 		
