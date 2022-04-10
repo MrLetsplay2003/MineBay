@@ -703,17 +703,18 @@ public class GUIs {
 				AuctionRoom r = AuctionRooms.getAuctionRoomByID((int) e.getGUIHolder().getProperty(Main.pl, "room_id"));
 				if(!r.isDefaultRoom()){
 					if(e.getClickType().equals(ClickType.LEFT)){
-						if(r.getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
+						int maxSlots = MineBay.getMaxSlots(e.getPlayer());
+						if(r.getSlots() < maxSlots){
 							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, 1));
 						}else{
 							e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-buy.toomanyslots"));
 						}
 					}else if(e.getClickType().equals(ClickType.SHIFT_LEFT)){
-						if(r.getSlots() + 5 <= Config.config.getInt("minebay.user-rooms.max-slots")){
-							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, 5));
-						}else if(r.getSlots() < Config.config.getInt("minebay.user-rooms.max-slots")){
-							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, Config.config.getInt("minebay.user-rooms.max-slots") - r.getSlots()));
-						}else{
+						int maxSlots = MineBay.getMaxSlots(e.getPlayer());
+						int slotsToBuy = Math.min(maxSlots - r.getSlots(), 5);
+						if(slotsToBuy > 0) {
+							e.getPlayer().openInventory(GUIs.buySlotsGUI(e.getPlayer(), r, slotsToBuy));
+						}else {
 							e.getPlayer().sendMessage(Config.getMessage("minebay.info.slot-buy.toomanyslots"));
 						}
 					}

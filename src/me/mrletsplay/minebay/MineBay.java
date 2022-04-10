@@ -83,4 +83,15 @@ public class MineBay {
 		return its.size() < mSales;
 	}
 	
+	public static int getMaxSlots(Player p){
+		int mSlots = Config.config.getInt("minebay.user-rooms.max-slots");
+		for(String perm : Config.config.getStringList("room-perms")){
+			if(p.hasPermission(perm)){
+				int r = Config.config.getInt("room-perm."+perm+".max-slots");
+				if(r > mSlots) mSlots = r;
+			}
+		}
+		return mSlots;
+	}
+	
 }
