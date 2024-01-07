@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>me.mrletsplay</groupId>
 	<artifactId>MineBay</artifactId>
-	<version>4.5</version>
+	<version>4.6</version>
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
