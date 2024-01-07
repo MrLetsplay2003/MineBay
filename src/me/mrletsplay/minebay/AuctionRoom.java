@@ -35,14 +35,14 @@ public class AuctionRoom {
 	private ItemStack icon;
 	private boolean isDefaultRoom, isPrivateRoom;
 	private List<String> playerList;
-	
+
 	private File roomFile;
 	private BukkitCustomConfig roomConfig;
-	
+
 	@SuppressWarnings("deprecation")
 	public AuctionRoom(int id) {
 		roomFile = new File(Main.pl.getDataFolder(), "AuctionRooms/" + id + ".yml");
-		roomConfig = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(roomFile), roomFile, true);
+		roomConfig = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(roomFile), roomFile);
 		this.owner = roomConfig.getString("owner");
 		boolean s = false;
 		if(this.owner!=null) {
@@ -69,7 +69,7 @@ public class AuctionRoom {
 		this.roomID = id;
 		if(s) saveAllSettings();
 	}
-	
+
 	public void setDefaultSettings(String owner, boolean isDefaultRoom){
 		this.owner = owner;
 		this.taxshare = Config.config.getInt("minebay.user-rooms.default-tax-percent");
@@ -86,7 +86,7 @@ public class AuctionRoom {
 		this.playerList = new ArrayList<>();
 		saveAllSettings();
 	}
-	
+
 	public void saveAllSettings(){
 		roomConfig.set("owner", owner);
 		roomConfig.set("tax-share", taxshare);
@@ -99,19 +99,19 @@ public class AuctionRoom {
 		roomConfig.set("player-list", playerList);
 		saveRoomConfig();
 	}
-	
+
 	public void setName(String name){
 		this.name = name;
 	}
-	
+
 	public void saveRoomConfig(){
 		roomConfig.saveToFile();
 	}
-	
+
 	public String getOwner() {
 		return owner;
 	}
-	
+
 	public boolean isOwner(Player p) {
 		if(Config.useUUIDs) {
 			return p.getUniqueId().toString().equals(owner);
@@ -119,11 +119,11 @@ public class AuctionRoom {
 			return p.getName().equals(owner);
 		}
 	}
-	
+
 	public boolean canEdit(Player p) {
 		return (p!=null && isOwner(p)) || (p!=null && isDefaultRoom && p.hasPermission("minebay.default-rooms.allow-edit")) || (p!=null && !isDefaultRoom && p.hasPermission("minebay.user-rooms.allow-edit"));
 	}
-	
+
 	public String getOwnerName() {
 		if(owner==null) return null;
 		if(!Config.useUUIDs) {
@@ -132,70 +132,70 @@ public class AuctionRoom {
 			return Bukkit.getOfflinePlayer(UUID.fromString(owner)).getName();
 		}
 	}
-	
+
 	public int getTaxshare() {
 		return taxshare;
 	}
-	
+
 	public int getSlots() {
 		return slots;
 	}
-	
+
 	public int getID() {
 		return roomID;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public void setSlots(int slots) {
 		this.slots = slots;
 	}
-	
+
 	public void setTaxshare(int taxshare) {
 		this.taxshare = taxshare;
 	}
-	
+
 	public void setIcon(ItemStack icon) {
 		this.icon = icon;
 	}
-	
+
 	public ItemStack getIcon() {
 		return icon;
 	}
-	
+
 	public void addPlayerToList(OfflinePlayer player) {
 		playerList.add(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
-	
+
 	public boolean isPlayerOnList(OfflinePlayer player) {
 		return playerList.contains(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
-	
+
 	public void removePlayerFromList(OfflinePlayer player) {
 		playerList.remove(Config.useUUIDs ? player.getUniqueId().toString() : player.getName());
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	public List<OfflinePlayer> getPlayerList() {
 		return playerList.stream()
 				.map(p -> Config.useUUIDs ? Bukkit.getOfflinePlayer(UUID.fromString(p)) : Bukkit.getOfflinePlayer(p))
 				.collect(Collectors.toList());
 	}
-	
+
 	public boolean canSell(Player p) {
 		return isOwner(p) || (isPrivateRoom == playerList.contains(Config.useUUIDs ? p.getUniqueId().toString() : p.getName()));
 	}
-	
+
 	public void addSellItem(SellItem item){
 		List<Integer> ids = getItemIDs();
 		int iID = getNewItemID();
@@ -207,10 +207,10 @@ public class AuctionRoom {
 		saveRoomConfig();
 		updateMineBay();
 	}
-	
+
 	public void removeSellItem(int id){
 		List<Integer> ids = getItemIDs();
-		if(ids.contains((Integer)id)){
+		if(ids.contains(id)){
 			ids.remove((Integer)id);
 			roomConfig.set("sold-items.ids", ids);
 			roomConfig.unset("sold-items.item."+id);
@@ -219,7 +219,7 @@ public class AuctionRoom {
 		}
 		updateMineBay();
 	}
-	
+
 	public List<SellItem> getSoldItems(){
 		List<Integer> ids = getItemIDs();
 		List<SellItem> items = new ArrayList<>();
@@ -228,7 +228,7 @@ public class AuctionRoom {
 		}
 		return items;
 	}
-	
+
 	public int getNewItemID(){
 		int id = 0;
 		List<Integer> ids = getItemIDs();
@@ -237,11 +237,11 @@ public class AuctionRoom {
 		}
 		return id;
 	}
-	
+
 	public List<Integer> getItemIDs(){
 		return roomConfig.getIntegerList("sold-items.ids");
 	}
-	
+
 	public int getOccupiedSlots(){
 		List<String> sellers = new ArrayList<>();
 		for(SellItem i : getSoldItems()){
@@ -251,7 +251,7 @@ public class AuctionRoom {
 		}
 		return sellers.size();
 	}
-	
+
 	public List<SellItem> getSoldItemsBySeller(Player seller){
 		List<SellItem> it = new ArrayList<>();
 		for(SellItem i : getSoldItems()){
@@ -261,7 +261,7 @@ public class AuctionRoom {
 		}
 		return it;
 	}
-	
+
 	public SellItem getItemByID(int id){
 		if(getItemIDs().contains(id)){
 			ItemStack item = roomConfig.getItemStack("sold-items.item."+id+".item");
@@ -272,15 +272,15 @@ public class AuctionRoom {
 			return null;
 		}
 	}
-	
+
 	public Inventory getMineBayInv(int page, Player p) {
 		return GUIs.getAuctionRoomGUI(p, roomID, page);
 	}
-	
+
 	public void updateMineBay(){
 		GUIs.AUCTION_ROOM_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
 	}
-	
+
 	public void closePurchaseGUIs(int roomID, int sellItemID) {
 		GUIs.CONFIRM_GUI.getAllOpenInstances().forEach(p -> {
 			GUIHolder holder = GUI.getGUIHolder(p.getOpenInventory().getTopInventory());
@@ -290,15 +290,15 @@ public class AuctionRoom {
 					&& it.getID() == sellItemID) p.closeInventory();
 		});
 	}
-	
+
 	public void updateSettings(){
 		GUIs.AUCTION_ROOM_SETTINGS_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
 	}
-	
+
 	public void updatePlayerList(){
 		GUIs.AUCTION_ROOM_PLAYER_LIST_GUI.refreshAllInstances(holder -> (int) holder.getProperty(Main.pl, "room_id") == roomID);
 	}
-	
+
 	public ItemStack getSelectItemStack(Player p){
 		if(icon==null) return null;
 		ItemStack newItem = icon.clone();
@@ -333,7 +333,7 @@ public class AuctionRoom {
 		newItem.setItemMeta(im);
 		return newItem;
 	}
-	
+
 	public int getWorth(){
 		if(isDefaultRoom){
 			return 0;
@@ -343,19 +343,19 @@ public class AuctionRoom {
 			return sl + pr;
 		}
 	}
-	
+
 	public boolean isDefaultRoom() {
 		return isDefaultRoom;
 	}
-	
+
 	public void setPrivateRoom(boolean isPrivateRoom) {
 		this.isPrivateRoom = isPrivateRoom;
 	}
-	
+
 	public boolean isPrivateRoom() {
 		return isPrivateRoom;
 	}
-	
+
 	public boolean backupConfig(File to) {
 		try {
 			if(!roomFile.exists()) return false;
@@ -370,5 +370,5 @@ public class AuctionRoom {
 		}
 		return false;
 	}
-	
+
 }

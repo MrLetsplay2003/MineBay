@@ -56,7 +56,7 @@
 		</repository>
 		<repository>
 			<id>Graphite-Official</id>
-			<url>http://graphite-official.com/repo/</url>
+			<url>https://maven.graphite-official.com/releases</url>
 		</repository>
 		<repository>
 			<id>Citizens</id>
@@ -71,8 +71,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>me.mrletsplay</groupId>
-			<artifactId>MrCore</artifactId>
-			<version>3.5.1</version>
+			<artifactId>MrCore-Bukkit</artifactId>
+			<version>4.4</version>
 			<scope>provided</scope>
 		</dependency>
 		<!--Spigot API -->

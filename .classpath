@@ -16,7 +16,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/MrCore"/>
 	<classpathentry kind="lib" path="/mnt/sshd/Files/Spigot/lib/TokenEnchantAPI-15.3.2.jar"/>
 	<classpathentry excluding="**" kind="src" output="target/classes" path="lang">
 		<attributes>

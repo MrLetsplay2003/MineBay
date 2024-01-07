@@ -21,36 +21,36 @@ import me.mrletsplay.mrcore.misc.Complex;
 import net.md_5.bungee.api.ChatColor;
 
 public class Config {
-	
+
 	public static File
 			configFile = new File(Main.pl.getDataFolder(), "config.yml"),
 			pricesFile = new File(Main.pl.getDataFolder(), "prices.yml");
-	
+
 	public static BukkitCustomConfig
-			config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true),
+			config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile),
 			messages,
-			prices = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(pricesFile), pricesFile, true);
-	
+			prices = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(pricesFile), pricesFile);
+
 	public static boolean
 			useUUIDs,
 			allowTaxChange,
 			enableNPCs,
 			enableTransactionLog;
-	
+
 	public static String
 			prefix,
 			mbString,
 			economy;
-	
+
 	public static String
 			openPermission,
 			buyPermission,
 			sellPermission,
 			createPermission;
-	
+
 	public static List<MineBayFilterItem> itemFilter;
 	public static List<MineBayItemPriceRestraints> itemPriceRestraints;
-	
+
 	public static void init(){
 		config.addDefault("minebay.general.allow-drag-and-drop", true);
 		config.addDefault("minebay.general.enable-user-rooms", true);
@@ -99,9 +99,9 @@ public class Config {
 		config.addDefault("room-perm.user.donator.allow-colored-descriptions", true);
 		config.addDefault("room-perm.user.donator.max-default-room-sales", 15);
 		config.addDefault("room-perm.user.donator.max-slots", 70);
-		
+
 		config.applyDefaults();
-		
+
 		useUUIDs = config.getBoolean("minebay.general.use-uuids", true, true) && Bukkit.getOnlineMode();
 		enableNPCs = config.getBoolean("minebay.general.enable-npcs", false, true);
 		enableTransactionLog = config.getBoolean("minebay.general.enable-transaction-log", false, true);
@@ -115,15 +115,15 @@ public class Config {
 		createPermission = config.getString("minebay.general.permission.create", "none", true);
 		config.setComment("minebay.general.economy", "Possible economies: Vault, TokenEnchant, Reserve");
 		config.saveToFile();
-		
+
 		messages = loadMessageConfig(new File(Main.pl.getDataFolder(), "lang/en.yml"));
 		messages.saveToFile();
-		
+
 		config.registerMapper(MineBayFilterItem.MAPPER);
 		itemFilter = config.getComplex("minebay.general.item-filter", Complex.list(MineBayFilterItem.class), Arrays.asList(
 					new MineBayFilterItem(ItemUtils.createItem(VersionedMaterial.GOLDEN_AXE, 1, "§cTest", "§6Test!"), Arrays.asList(ItemUtils.ComparisonParameter.DURABILITY))
 				), true);
-		
+
 		prices.registerMapper(MineBayItemPriceRestraints.MAPPER);
 		prices.registerMapper(MineBayFilterItem.MAPPER);
 		prices.setHeader(
@@ -131,13 +131,13 @@ public class Config {
 				" \"-1\" for min or max price is equivalent to no limit");
 		prices.setComment("type", " Type names are Bukkit material names (refer to https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html)");
 		prices.setComment("item", " Valid values for 'ignored-parameters' can be found at https://github.com/MrLetsplay2003/MrCore/blob/2.0/src/me/mrletsplay/mrcore/bukkitimpl/ItemUtils.java#L338");
-		
+
 		for(Material m : Material.values()) {
 			if(m.name().startsWith("LEGACY_")) continue; // Skip legacy Materials (1.13+)
 			prices.addDefault("type." + m.name() + ".min-price", "-1");
 			prices.addDefault("type." + m.name() + ".max-price", "-1");
 		}
-		
+
 		List<MineBayItemPriceRestraints> defaultRestraints = Arrays.asList(
 					new MineBayItemPriceRestraints(
 							new MineBayFilterItem(
@@ -146,17 +146,17 @@ public class Config {
 							BigDecimal.valueOf(100000),
 							BigDecimal.valueOf(100001))
 				);
-		
+
 		prices.addDefault("items", defaultRestraints);
-		
+
 		if(prices.isEmpty()) prices.applyDefaults();
 		prices.saveToFile();
-		
+
 		itemPriceRestraints = prices.getComplex("items", Complex.list(MineBayItemPriceRestraints.class));
 	}
-	
+
 	private static BukkitCustomConfig loadMessageConfig(File f) {
-		BukkitCustomConfig cc = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(f), f, true);
+		BukkitCustomConfig cc = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(f), f);
 		cc.addDefault("minebay.info.purchase.success", "%prefix% §aYou successfully bought §6%amount%x %type% §afrom §6%seller% §afor §6%price% %currency%");
 		cc.addDefault("minebay.info.purchase.error", "§cError: %error%");
 		cc.addDefault("minebay.info.purchase.seller.success", "%prefix% §6%buyer% §ahas bought §6%amount%x %type% §afor §6%price% %currency% §afrom you on %mbstring% §7(-%roomtax%% tax => You get %price2% %currency%)");
@@ -224,15 +224,15 @@ public class Config {
 		cc.addDefault("minebay.info.npcs-disabled", "%prefix% §cNPCs are disabled");
 		cc.addDefault("minebay.info.spawn-npc.error.general", "%prefix% §cError: %error%");
 		cc.addDefault("minebay.info.spawn-npc.success", "%prefix% §aSpawned an auctioneer NPC");
-		
+
 		cc.addDefault("minebay.gui.item-confirm.name", "§8Confirm purchase");
 		cc.addDefault("minebay.gui.item-confirm.confirm", "§aConfirm");
 		cc.addDefault("minebay.gui.item-confirm.cancel", "§cCancel");
-		
+
 		cc.addDefault("minebay.gui.rooms.create-room", "§aCreate new room");
 		cc.addDefault("minebay.gui.rooms.list-all", "§7All rooms");
 		cc.addDefault("minebay.gui.rooms.list-self", "§7Your rooms");
-		
+
 		cc.addDefault("minebay.gui.room.sold-item.lore", Arrays.asList(
 																	"§8Price: §7%price%",
 																	"§8Seller: §7%seller-name%",
@@ -290,27 +290,27 @@ public class Config {
 		cc.addDefault("minebay.gui.room-settings.custom-icon.name", "§6Custom block/item");
 		cc.addDefault("minebay.gui.room-settings.custom-icon.lore", Arrays.asList(
 																		"§8Price: %price%"));
-		
+
 		cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.name", "§7Drop item here");
 		cc.addDefault("minebay.gui.room-settings.custom-icon.item-drop.lore", Arrays.asList(
 																		"§7Drop your item here"));
-		
+
 		cc.addDefault("minebay.gui.room-settings.private-room.private.name", "§cRoom is private");
 		cc.addDefault("minebay.gui.room-settings.private-room.private.lore", Arrays.asList(
 																		"§7Nobody can sell items in this room except you"));
-		
+
 		cc.addDefault("minebay.gui.room-settings.private-room.public.name", "§aRoom is public");
 		cc.addDefault("minebay.gui.room-settings.private-room.public.lore", Arrays.asList(
 																		"§7Everyone is allowed to sell items in this room"));
-		
+
 		cc.addDefault("minebay.gui.room-settings.private-room.blacklist.name", "§cBlacklist");
 		cc.addDefault("minebay.gui.room-settings.private-room.blacklist.lore", Arrays.asList(
 																		"§7These users aren't allowed to sell items in this room"));
-		
+
 		cc.addDefault("minebay.gui.room-settings.private-room.whitelist.name", "§aWhitelist");
 		cc.addDefault("minebay.gui.room-settings.private-room.whitelist.lore", Arrays.asList(
 																		"§7Only these users are allowed to sell items in this room"));
-		
+
 		cc.addDefault("minebay.gui.rooms.room-item.name", "§7%room-name%");
 		cc.addDefault("minebay.gui.rooms.room-item.slots-unlimited", "unlimited");
 		cc.addDefault("minebay.gui.rooms.room-item.description-linebreak-color", "§7");
@@ -328,16 +328,16 @@ public class Config {
 																		"§8Description: §7%description%",
 																		"%can-edit%"
 																	));
-		
+
 		cc.addDefault("minebay.gui.player-list.item.name", "§r%player%");
 		cc.addDefault("minebay.gui.player-list.item.lore", Arrays.asList("§7Click to remove from list"));
-		
-		
+
+
 		cc.addDefault("minebay.gui.confirm.room-create.name", "§8Buy Auction Room");
 		cc.addDefault("minebay.gui.confirm.room-create.lore", Arrays.asList(
 																		"§8Price: §7%price%"));
-		
-		
+
+
 		cc.addDefault("minebay.gui.confirm.slots-buy.name", "§8Buy Slot(s)");
 		cc.addDefault("minebay.gui.confirm.slots-buy.lore", Arrays.asList(
 																		"§8Price: §7%price%",
@@ -349,47 +349,47 @@ public class Config {
 																		"§8Worth: §7%price%",
 																		"§8Room ID: §7%room-id%",
 																		"§8Amount: §7%amount%"));
-		
+
 		cc.addDefault("minebay.gui.confirm.room-sell.name", "§8Sell Room");
 		cc.addDefault("minebay.gui.confirm.room-sell.lore", Arrays.asList(
 																		"§8Worth: §7%price%",
 																		"§8Room ID: §7%room-id%"));
-		
+
 		cc.addDefault("minebay.gui.confirm.confirm.name", "§aConfirm");
 		cc.addDefault("minebay.gui.confirm.confirm.lore", Arrays.asList(
 																		"§7This will confirm the current action"));
-		
+
 		cc.addDefault("minebay.gui.confirm.cancel.name", "§cCancel");
 		cc.addDefault("minebay.gui.confirm.cancel.lore", Arrays.asList(
 																		"§7This will cancel the current action"));
-		
+
 		cc.addDefault("minebay.gui.confirm.buy-item.info.name", "§eInfo");
 		cc.addDefault("minebay.gui.confirm.buy-item.info.lore", Arrays.asList(
 																		"§8Price: §7%price%",
 																		"§8Seller: §7%seller%",
 																		"§8Product ID: §7%item-id%",
 																		"§8Auction Room: §7%room-id%"));
-		
+
 		cc.addDefault("minebay.economy.tokenenchant.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% token(s), needed: %needed-balance% token(s))");
 		cc.addDefault("minebay.economy.tokenenchant.currency-name.singular", "token");
 		cc.addDefault("minebay.economy.tokenenchant.currency-name.plural", "tokens");
-		
+
 		cc.addDefault("minebay.economy.reserve.insufficient-funds", "§cInsufficient funds (Current balance: %current-balance% %currency-name-plural%, needed: %needed-balance% %currency-name-plural%)");
-		
+
 		cc.applyDefaults();
 		return cc;
 	}
-	
+
 	public static String getFriendlyTypeName(Material material) {
 		return material.name().toLowerCase().replace("_", " "); // TODO
 	}
-	
+
 //	private static void importLangFile(String lang) {
 //		if(!new File(Main.pl.getDataFolder(), "/lang/"+lang+".yml").exists()) {
 //			Main.pl.saveResource("lang/"+lang+".yml", false);
 //		}
 //	}
-	
+
 	public static String getAndTranslate(String file, String path) {
 		String msg = null;
 		if(file.equalsIgnoreCase("messages")) {
@@ -400,11 +400,11 @@ public class Config {
 		if(msg == null) msg = path;
 		return simpleReplace(msg);
 	}
-	
+
 	public static String getMessage(String msg) {
 		return getAndTranslate("messages", msg);
 	}
-	
+
 	public static String getMessage(String msg, String... params) {
 		if(params.length%2!=0) return null;
 		String msg2 = getAndTranslate("messages", msg);
@@ -413,7 +413,7 @@ public class Config {
 		}
 		return msg2;
 	}
-	
+
 	public static List<String> getMessageList(String msg, String... params) {
 		if(params.length%2!=0) return null;
 		List<String> msg2 = messages.getStringList(msg, Arrays.asList(msg), false);
@@ -426,7 +426,7 @@ public class Config {
 		}
 		return msgf.stream().map(s -> ChatColor.translateAlternateColorCodes('&', s)).collect(Collectors.toList());
 	}
-	
+
 	public static String simpleReplace(String s){
 		String currencyName = Main.econ.getCurrencyNamePlural();
 		s = ChatColor.translateAlternateColorCodes('&', s
@@ -441,7 +441,7 @@ public class Config {
 		}
 		return s;
 	}
-	
+
 	public static String replaceForSellItem(String s, SellItem it, AuctionRoom r){
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%amount%", ""+it.getItem().getAmount())
@@ -451,7 +451,7 @@ public class Config {
 				.replace("%roomtax%", ""+r.getTaxshare());
 		return s;
 	}
-	
+
 	public static String replaceForAuctionRoom(String s, AuctionRoom r){
 		s = ChatColor.translateAlternateColorCodes('&', s
 				.replace("%name%", ""+r.getName())
@@ -461,27 +461,27 @@ public class Config {
 				.replace("%iconmaterial%", Config.getFriendlyTypeName(r.getIcon().getType())));
 		return s;
 	}
-	
+
 	public static BigDecimal getMinimumPrice(ItemStack item) {
 		BigDecimal m = getMinimumPriceStrict(item);
 		if(m.compareTo(BigDecimal.ZERO) == 1) return m;
 		return getMinimumPrice(item.getType());
 	}
-	
+
 	public static BigDecimal getMaximumPrice(ItemStack item) {
 		BigDecimal m = getMaximumPriceStrict(item);
 		if(m.compareTo(BigDecimal.ZERO) == 1) return m;
 		return getMaximumPrice(item.getType());
 	}
-	
+
 	public static BigDecimal getMinimumPrice(Material type) {
 		return new BigDecimal(prices.getString("type." + type.name() + ".min-price", "-1", false));
 	}
-	
+
 	public static BigDecimal getMaximumPrice(Material type) {
 		return new BigDecimal(prices.getString("type." + type.name() + ".max-price", "-1", false));
 	}
-	
+
 	public static BigDecimal getMinimumPriceStrict(ItemStack item) {
 		return itemPriceRestraints.stream()
 				.filter(f -> f.getItem().matches(item))
@@ -490,7 +490,7 @@ public class Config {
 				.sorted(Comparator.reverseOrder())
 				.findFirst().orElse(BigDecimal.valueOf(-1));
 	}
-	
+
 	public static BigDecimal getMaximumPriceStrict(ItemStack item) {
 		return itemPriceRestraints.stream()
 				.filter(f -> f.getItem().matches(item))
@@ -499,10 +499,10 @@ public class Config {
 				.sorted()
 				.findFirst().orElse(BigDecimal.valueOf(-1));
 	}
-	
+
 	public static void reload() {
 		config.clear();
 		config.loadFromFile();
 	}
-	
+
 }

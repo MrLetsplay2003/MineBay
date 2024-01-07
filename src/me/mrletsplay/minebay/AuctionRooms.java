@@ -10,10 +10,10 @@ import me.mrletsplay.mrcore.bukkitimpl.config.BukkitCustomConfig;
 import me.mrletsplay.mrcore.config.ConfigLoader;
 
 public class AuctionRooms {
-	
+
 	private static File configFile = new File(Main.pl.getDataFolder(), "AuctionRooms/AuctionRooms.yml");
-	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile, true);
-	
+	public static BukkitCustomConfig config = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(configFile), configFile);
+
 	public static AuctionRoom createAuctionRoom(Player player, int id, boolean isDefaultRoom){
 		AuctionRoom nRoom = getNewAuctionRoom(player, id, isDefaultRoom);
 		nRoom.saveAllSettings();
@@ -25,7 +25,7 @@ public class AuctionRooms {
 		config.saveToFile();
 		return nRoom;
 	}
-	
+
 	public static void deleteAuctionRoom(int id){
 		List<Integer> rIDs = getAuctionRoomIDs();
 		rIDs.remove((Integer)id);
@@ -34,13 +34,13 @@ public class AuctionRooms {
 		if(roomFile.exists()) roomFile.delete();
 		config.saveToFile();
 	}
-	
+
 	public static AuctionRoom getNewAuctionRoom(Player owner, int id, boolean isDefaultRoom){
 		AuctionRoom r = new AuctionRoom(id);
 		r.setDefaultSettings(owner!=null?(Config.useUUIDs?owner.getUniqueId().toString():owner.getName()):null, isDefaultRoom);
 		return r;
 	}
-	
+
 	public static List<AuctionRoom> getAuctionRooms(){
 		List<Integer> aRoomIDs = getAuctionRoomIDs();
 		List<AuctionRoom> aRooms = new ArrayList<>();
@@ -49,7 +49,7 @@ public class AuctionRooms {
 		}
 		return aRooms;
 	}
-	
+
 	public static List<AuctionRoom> getAuctionRoomsByOwner(String owner){
 		List<Integer> aRoomIDs = getAuctionRoomIDs();
 		List<AuctionRoom> aRooms = new ArrayList<>();
@@ -61,15 +61,15 @@ public class AuctionRooms {
 		}
 		return aRooms;
 	}
-	
+
 	public static List<Integer> getAuctionRoomIDs(){
 		return config.getIntegerList("auction-room-ids");
 	}
-	
+
 	public static AuctionRoom getAuctionRoomByID(int id){
 		return new AuctionRoom(id);
 	}
-	
+
 	public static int getNewRoomID(){
 		int id = 0;
 		List<Integer> ids = getAuctionRoomIDs();
@@ -78,5 +78,5 @@ public class AuctionRooms {
 		}
 		return id;
 	}
-	
+
 }

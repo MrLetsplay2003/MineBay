@@ -17,12 +17,12 @@ import me.mrletsplay.mrcore.misc.Complex;
 public class PlayerData {
 
 	public static File dataFile = new File(Main.pl.getDataFolder(), "data.yml");
-	private static FileCustomConfig data = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(dataFile), dataFile, true);
-	
+	private static FileCustomConfig data = ConfigLoader.loadConfigFromFile(new BukkitCustomConfig(dataFile), dataFile);
+
 	static {
 		data.registerMapper(JSONObjectMapper.create(OfflineNotification.class));
 	}
-	
+
 	public static void addOfflineNotification(OfflinePlayer player, OfflineNotification notification) {
 		if(player.isOnline()) {
 			notification.send(player.getPlayer());
@@ -33,11 +33,11 @@ public class PlayerData {
 		data.set(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications", ns);
 		data.saveToFile();
 	}
-	
+
 	public static List<OfflineNotification> getOfflineNotifications(OfflinePlayer player) {
 		return data.getComplex(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications", Complex.list(OfflineNotification.class), new ArrayList<>(), false);
 	}
-	
+
 	public static void resetOfflineNotifications(OfflinePlayer player) {
 		data.unset(Config.useUUIDs ? player.getUniqueId().toString() : player.getName() + ".notifications");
 		data.saveToFile();
